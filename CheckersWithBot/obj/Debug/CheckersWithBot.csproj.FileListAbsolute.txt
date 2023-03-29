@@ -1,0 +1,8 @@
+C:\Users\Arturio Armany\Documents\GitHub\Checkers\CheckersWithBot\obj\Debug\CheckersWithBot.csproj.AssemblyReference.cache
+C:\Users\Arturio Armany\Documents\GitHub\Checkers\CheckersWithBot\obj\Debug\CheckersWithBot.csproj.SuggestedBindingRedirects.cache
+C:\Users\Arturio Armany\Documents\GitHub\Checkers\CheckersWithBot\obj\Debug\CheckersWithBot.csproj.CoreCompileInputs.cache
+C:\Users\Arturio Armany\Documents\GitHub\Checkers\CheckersWithBot\bin\Debug\CheckersWithBot.exe.config
+C:\Users\Arturio Armany\Documents\GitHub\Checkers\CheckersWithBot\bin\Debug\CheckersWithBot.exe
+C:\Users\Arturio Armany\Documents\GitHub\Checkers\CheckersWithBot\bin\Debug\CheckersWithBot.pdb
+C:\Users\Arturio Armany\Documents\GitHub\Checkers\CheckersWithBot\obj\Debug\CheckersWithBot.exe
+C:\Users\Arturio Armany\Documents\GitHub\Checkers\CheckersWithBot\obj\Debug\CheckersWithBot.pdb
