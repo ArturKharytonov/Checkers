@@ -13,7 +13,7 @@ namespace CheckersWithBot
     {
         public Field Field { get; set; }
         public List<User> Users { get; set; }
-        private int _toGetNumber = 17;
+        private int _toGetNumber = 65;
         public Game(Field field, List<User> users)
         {
             Field = field;
@@ -48,10 +48,13 @@ namespace CheckersWithBot
                 Console.Write("Cord X: ");
                 int.TryParse(Console.ReadLine(), out cordX);
                 Console.Write("Cord Y: ");
-                int.TryParse(Console.ReadLine(), out cordY);
+                char.TryParse(Console.ReadLine().ToUpper(), out char temp);
+                cordY = (temp - _toGetNumber);
+
             } while (cordX < 0 || cordX >= Field.Map.GetLength(0) ||
                      cordY < 0 || cordY >= Field.Map.GetLength(1));
         }
+
         public void Start()
         {
             MenuInGame menuInGame = new MenuInGame();
@@ -94,15 +97,57 @@ namespace CheckersWithBot
 
                                             //Users[i].DoesBitSmbBefore = true;
                                         }
-                                        else //якщо гравецб не може побити шашку
+                                        else 
                                         {
-                                            //Users[i].DoesBitSmbBefore = false;
                                             do
                                             {
                                                 InputOfCords(ref cordX, ref cordY);
                                             } while (Field.Map[cordX, cordY].Type != Users[i].TypeDef &&
                                                      Field.Map[cordX, cordY].Type != Users[i].TypeQ);
-                                        }
+
+                                            Field.CollectAllPossibleStepsToMoveCheck(new Point(cordX, cordY), Users[i]); // збір всіх можливих ходів для шашки яку вибрав юзер
+                                            Field.PrintField(Users[i]);
+
+                                            bool didUserDoStep = false;
+
+                                            do
+                                            {
+                                                Console.WriteLine("----EXTRA MENU----\n" +
+                                                "1 - Enter cord.\n" +
+                                                "2 - Choose another checker.");
+                                                Console.Write("Enter your choice: ");
+                                                Enum.TryParse(Console.ReadLine(), out extraMenu);
+                                                switch (extraMenu)
+                                                {
+                                                    case ExtraMenu.EnterCord:
+                                                        {
+                                                            int tempCordX = 0;
+                                                            int tempCordY = 0;
+                                                            int countOfTries = 0;
+                                                            do
+                                                            {
+                                                                InputOfCords(ref tempCordX, ref tempCordY);
+                                                            } while (!Field.DoesCordExistInUserListOfEmptyCells(new Point(tempCordX, tempCordY), Users[i]));
+
+                                                            Field.MoveCheck(new Point(cordX, cordY), new Point(tempCordX, tempCordY));
+                                                            Users[i].CordsOfEmptyCells.Clear();
+
+
+                                                            didUserDoStep = true;
+                                                        }
+                                                        break;
+                                                    case ExtraMenu.ChooseAnotherChecker:
+                                                        {
+                                                            Users[i].CordsOfEmptyCells.Clear();
+                                                            step = false;
+                                                        }
+                                                        break;
+                                                    default:
+                                                        Console.WriteLine("Error choice...");
+                                                        break;
+                                                }
+                                            } while (extraMenu != ExtraMenu.ChooseAnotherChecker && !didUserDoStep);
+                                        } //якщо гравецб не може побити шашку
                                     }
                                     break;
                                 case MenuInGame.Surrender:

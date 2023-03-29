@@ -44,18 +44,6 @@ namespace CheckersWithBot.FieldModel
             }
         }
 
-        
-        public bool DoesCordExistInUserListOfEmptyCells(Point point, User user) //CordsOfEmptyCells
-        {
-            if (user.CordsOfEmptyCells.Count <= 0) return false;
-
-            for (int i = 0; i < user.CordsOfEmptyCells.Count; i++)
-            {
-                if (user.CordsOfEmptyCells[i].CordX == point.CordX && user.CordsOfEmptyCells[i].CordY == point.CordY) return true;
-            }
-            return false;
-        }
-
         public void PrintField(User user)
         {
             Console.WriteLine("   A     B     C     D     E     F     G     H");
@@ -228,9 +216,74 @@ namespace CheckersWithBot.FieldModel
             return false;
         }
 
-        public void CollectAllPossibleStepsToMoveCheck(Point point, User user)
-        {
 
+        public void CollectAllPossibleStepsToMoveCheck(Point points, User user)
+        {
+            if (Map[points.CordX, points.CordY].Type == CellType.CheckerF)
+            {
+                if ((points.CordX + 1 >= 0 && points.CordX + 1 < Map.GetLength(0)) && (points.CordY + 1 >= 0 && points.CordY + 1 < Map.GetLength(1)) && Map[points.CordX + 1, points.CordY + 1].Type == CellType.Empty)
+                    user.CordsOfEmptyCells.Add(new Point(points.CordX + 1, points.CordY + 1));
+
+                if ((points.CordX + 1 >= 0 && points.CordX + 1 < Map.GetLength(0)) && (points.CordY - 1 >= 0 && points.CordY - 1 < Map.GetLength(1)) && Map[points.CordX + 1, points.CordY - 1].Type == CellType.Empty)
+                    user.CordsOfEmptyCells.Add(new Point(points.CordX + 1, points.CordY - 1));
+            }
+            else if (Map[points.CordX, points.CordY].Type == CellType.CheckerS)
+            {
+                if ((points.CordX - 1 >= 0 && points.CordX - 1 < Map.GetLength(0)) && (points.CordY + 1 >= 0 && points.CordY + 1 < Map.GetLength(1)) && Map[points.CordX - 1, points.CordY + 1].Type == CellType.Empty)
+                    user.CordsOfEmptyCells.Add(new Point(points.CordX - 1, points.CordY + 1));
+
+                if ((points.CordX - 1 >= 0 && points.CordX - 1 < Map.GetLength(0)) && (points.CordY - 1 >= 0 && points.CordY - 1 < Map.GetLength(1)) && Map[points.CordX - 1, points.CordY - 1].Type == CellType.Empty)
+                    user.CordsOfEmptyCells.Add(new Point(points.CordX - 1, points.CordY - 1));
+            }
+
+            else
+            {
+                int temp = 1;
+                int j = points.CordY;
+
+                for (int i = points.CordX + 1; i < Map.GetLength(0); i++, temp++) // перевірка вниз
+                {
+                    if ((i + 1 >= 0 && i + 1 < Map.GetLength(0)) &&
+                        (j + temp + 1 >= 0 && j + temp + 1 < Map.GetLength(1)) &&
+                        Map[i + 1, j + temp + 1].Type == CellType.Empty) user.CordsOfEmptyCells.Add(new Point(i + 1, j + temp + 1));
+
+                    else if ((i + 1 >= 0 && i + 1 < Map.GetLength(0)) &&
+                             (j - temp - 1 >= 0 && j - temp - 1 < Map.GetLength(1)) &&
+                             Map[i + 1, j - temp - 1].Type == CellType.Empty) user.CordsOfEmptyCells.Add(new Point(i + 1, j - temp - 1));
+
+                }
+
+                temp = 1;
+                for (int i = points.CordX - 1; i >= 0; i--, temp++) // перевірка вверх
+                {
+                    if ((i - 1 >= 0 && i - 1 < Map.GetLength(0)) &&
+                        (j + temp + 1 >= 0 && j + temp + 1 < Map.GetLength(1)) &&
+                        Map[i - 1, j + temp + 1].Type == CellType.Empty) user.CordsOfEmptyCells.Add(new Point(i - 1, j + temp + 1));
+
+
+                    else if ((i - 1 >= 0 && i - 1 < Map.GetLength(0)) &&
+                             (j - temp - 1 >= 0 && j - temp - 1 < Map.GetLength(1)) &&
+                             Map[i - 1, j - temp - 1].Type == CellType.Empty) user.CordsOfEmptyCells.Add(new Point(i - 1, j - temp - 1));
+                }
+            }
         }
+        public bool DoesCordExistInUserListOfEmptyCells(Point point, User user) //CordsOfEmptyCells
+        {
+            if (user.CordsOfEmptyCells.Count <= 0) return false;
+
+            for (int i = 0; i < user.CordsOfEmptyCells.Count; i++)
+            {
+                if (user.CordsOfEmptyCells[i].CordX == point.CordX && user.CordsOfEmptyCells[i].CordY == point.CordY) return true;
+            }
+            return false;
+        }
+        public void MoveCheck(Point startPoint, Point endPoint)
+        {
+            CellType temp = Map[startPoint.CordX, startPoint.CordY].Type;
+
+            Map[startPoint.CordX, startPoint.CordY].Type = CellType.Empty;
+
+            Map[endPoint.CordX, endPoint.CordY].Type = temp;
+        }// Move in default step
     }
 }
