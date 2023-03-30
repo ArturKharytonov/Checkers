@@ -102,9 +102,10 @@ namespace CheckersWithBot
                                                      Field.Map[cordX, cordY].Type != Users[i].TypeQ) ||
                                                      !Field.DoesPointExistInDict(Users[i], new Point(cordX, cordY)));
 
-                                            // Fill user i empty cells
+                                            // Fill user empty cells
                                             Users[i].CordsOfEmptyCells =
                                                 Field.GetEmptyCells(Users[i], new Point(cordX, cordY));
+
                                             if (Users[i].CordsOfEmptyCells.Count > 0)
                                             {
                                                 Console.Clear();
@@ -154,13 +155,10 @@ namespace CheckersWithBot
                                                     }
                                                 } while (extraMenu != ExtraMenu.ChooseAnotherChecker && !didUserDoStep);
                                             }
-                                            
-                                            
                                         }
 
                                         else 
                                         {
-                                            
                                             do
                                             {
                                                 InputOfCords(ref cordX, ref cordY);
@@ -222,7 +220,11 @@ namespace CheckersWithBot
                                     break;
                                 case MenuInGame.OfferDraw: // IN proccess
                                     {
-
+                                        if (OfferDraw(i))
+                                        {
+                                            Console.WriteLine("Player accepted");
+                                            isEnd = true;
+                                        }
                                     }
                                     break;
                                 default:
@@ -235,11 +237,88 @@ namespace CheckersWithBot
                     else if (((Bot)Users[i]).BotStep(this, i)) Users[i].DoesBitSmbBefore = true;
 
                     Console.Clear();
+
+                    IfGotQueen(i); // does player got queen
+                    if (CountOfCheckersOnBoard(Users[0]) == 0)
+                    {
+                        Users.RemoveAt(0);
+                        isEnd = true;
+                        break;
+                    } // if lost first Player
+                    if (CountOfCheckersOnBoard(Users[1]) == 0)
+                    {
+                        Users.RemoveAt(1);
+                        isEnd = true;
+                        break;
+                    } // if lost second Player
+                    
+
                     if (Field.DoesCheckerOnFieldCanBit(Users[i])) i--;
+
                     //clear all lists of cords after step
                 }
             } while (!isEnd);
-            Console.WriteLine($"{Users[0].Name} - WON! HIS COLOR WAS - {Users[0].Color}.");
+
+            if (Users.Count == 2)
+                Console.WriteLine($"DRAW!");
+
+            else 
+                Console.WriteLine($"{Users[0].Name} - WON! HIS COLOR WAS - {Users[0].Color}.");
+        }
+
+        public int CountOfCheckersOnBoard(User user)
+        {
+            int count = 0;
+            for (int i = 0; i < Field.Map.GetLength(0); i++)
+            {
+                for (int j = 0; j < Field.Map.GetLength(1); j++)
+                {
+                    if(Field.Map[i, j].Type == user.TypeDef || Field.Map[i, j].Type == user.TypeQ) count++;
+                }
+            }
+            return count;
+        }
+        public bool OfferDraw(int index)
+        {
+            int tempIndex = 0;
+
+            if (index == 0) tempIndex = 1;
+            else tempIndex = 0;
+
+            Console.WriteLine($"{Users[index].Name} offers draw: ");
+            if (Users[tempIndex].GetType() == typeof(Player))
+            {
+                
+                char choice = ' ';
+                do
+                {
+                    Console.Write("Would u like to accept draw[y/n]: ");
+                    char.TryParse(Console.ReadLine().ToLower(), out choice);
+                } while (choice != 'y' && choice != 'n');
+
+                return choice == 'y';
+            }
+            return false;
+        }
+        public void IfGotQueen(int indexOfPlayer)
+        {
+            if (indexOfPlayer == 0)
+            {
+                for (int i = 0; i < Field.Map.GetLength(1); i++)
+                {
+                    if (Field.Map[Field.Map.GetLength(0) - 1, i].Type == CellType.CheckerF)
+                        Field.Map[Field.Map.GetLength(0) - 1, i].Type = CellType.QueenF;
+                }
+                
+            }
+            else
+            {
+                for (int i = 0; i < Field.Map.GetLength(1); i++)
+                {
+                    if (Field.Map[0, i].Type == CellType.CheckerS)
+                        Field.Map[0, i].Type = CellType.QueenS;
+                }
+            }
         }
     }
 }

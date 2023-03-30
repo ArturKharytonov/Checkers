@@ -286,7 +286,6 @@ namespace CheckersWithBot.FieldModel
             }
             return false;
         }
-
         public List<Point> CollectEmptyCells(Cell cell)
         {
             List<Point> emptyCells = new List<Point>();
