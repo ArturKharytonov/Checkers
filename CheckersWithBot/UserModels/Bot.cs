@@ -20,7 +20,6 @@ namespace CheckersWithBot.UserModels
 
         public bool BotStep(Game game, int indexOfPlayer)
         {
-
             return false;
         }
     }
