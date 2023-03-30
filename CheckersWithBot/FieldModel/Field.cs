@@ -10,7 +10,6 @@ namespace CheckersWithBot.FieldModel
     public class Field
     {
         public Cell[,] Map { get; set; }
-        
         public Field()
         {
             Map = new Cell[8, 8];
@@ -20,23 +19,23 @@ namespace CheckersWithBot.FieldModel
                 {
                     if (i == 0 || i == 2)
                     {
-                        if (j % 2 != 0) Map[i, j] = new Cell(CellType.CheckerF, new Point(i, j));
+                        if (j % 2 == 0) Map[i, j] = new Cell(CellType.CheckerF, new Point(i, j));
 
                         else Map[i, j] = new Cell(new Point(i, j));
                     }
                     else if (i == 1)
                     {
-                        if (j % 2 == 0) Map[i, j] = new Cell(CellType.CheckerF, new Point(i, j));
+                        if (j % 2 != 0) Map[i, j] = new Cell(CellType.CheckerF, new Point(i, j));
                         else Map[i, j] = new Cell(new Point(i, j));
                     }
                     else if (i == 5 || i == 7)
                     {
-                        if (j % 2 == 0) Map[i, j] = new Cell(CellType.CheckerS, new Point(i, j));
+                        if (j % 2 != 0) Map[i, j] = new Cell(CellType.CheckerS, new Point(i, j));
                         else Map[i, j] = new Cell(new Point(i, j));
                     }
                     else if (i == 6)
                     {
-                        if (j % 2 != 0) Map[i, j] = new Cell(CellType.CheckerS, new Point(i, j));
+                        if (j % 2 == 0) Map[i, j] = new Cell(CellType.CheckerS, new Point(i, j));
                         else Map[i, j] = new Cell(new Point(i, j));
                     }
                     else Map[i, j] = new Cell(new Point(i, j));
@@ -44,74 +43,143 @@ namespace CheckersWithBot.FieldModel
             }
         }
 
+        // FIELD
+        public void PrintRaw(int i, User user)
+        { 
+            Console.Write($"  \u2502");
+            for (int j = 0; j < Map.GetLength(1); j++)
+            {
+                if (i % 2 == 0 && j % 2 != 0) Console.BackgroundColor = ConsoleColor.White;
+                else if (i % 2 != 0 && j % 2 == 0) Console.BackgroundColor = ConsoleColor.White;
+
+                switch (Map[i, j].Type)
+                {
+                    case CellType.CheckerF:
+                        {
+                            Console.ForegroundColor = ConsoleColor.White;
+                            Console.Write("       ");
+                        }
+                        break;
+                    case CellType.CheckerS:
+                        { 
+                            Console.ForegroundColor = ConsoleColor.DarkGray;
+                            Console.Write("       ");
+                            Console.ForegroundColor = ConsoleColor.White;
+                        }
+                        break;
+                    case CellType.QueenF:
+                        {
+
+                            Console.Write("       ");
+                        }
+                        break;
+                    case CellType.QueenS:
+                        {
+                            Console.ForegroundColor = ConsoleColor.DarkGray;
+                            Console.Write("       ");
+                            Console.ForegroundColor = ConsoleColor.White;
+                        }
+                        break;
+                    case CellType.Empty:
+                        {
+                            if (DoesCordExistInUserListOfEmptyCells(new Point(i, j), user))
+                            {
+
+                                Console.BackgroundColor = ConsoleColor.DarkRed;
+                                Console.Write("       ");
+                                Console.BackgroundColor = ConsoleColor.Black;
+
+                            }
+
+                            else Console.Write("       ");
+                        }
+                        break;
+                }
+
+                Console.BackgroundColor = ConsoleColor.Black;
+            }
+            Console.Write($"\u2502");
+            Console.WriteLine();
+        }
         public void PrintField(User user)
         {
-            Console.WriteLine("   A     B     C     D     E     F     G     H");
+            Console.WriteLine("      A      B      C      D      E      F      G      H");
+            Console.Write("  \u250c");
+            for (int i = 0; i < 18; i++)
+            {
+                Console.Write("\u2500\u2500\u2500");
+            }
+            Console.Write("\u2500\u2500\u2510");
+            Console.WriteLine();
             for (int i = Map.GetLength(0) - 1; i >= 0; i--)
             {
-                Console.Write(" -----------------------------------------------\n");
-                Console.Write($"{i}");
+                PrintRaw(i, user);
+                Console.Write($"{i+1} \u2502");
                 for (int j = 0; j < Map.GetLength(1); j++)
                 {
+                    if (i % 2 == 0 && j % 2 != 0) Console.BackgroundColor = ConsoleColor.White;
+                    else if(i % 2 != 0 && j % 2 == 0) Console.BackgroundColor = ConsoleColor.White;
+
                     switch (Map[i, j].Type)
                     {
-                        case CellType.CheckerF:
+                        case CellType.CheckerF: 
                             {
-                                Console.Write($"| ");
-                                Console.ForegroundColor = ConsoleColor.DarkCyan;
-                                Console.Write("C ");
                                 Console.ForegroundColor = ConsoleColor.White;
-                                Console.Write("| ");
+                                Console.Write("   \u25a0   ");
+                                
                             }
                             break;
                         case CellType.CheckerS:
                             {
-                                Console.Write($"| ");
-                                Console.ForegroundColor = ConsoleColor.DarkMagenta;
-                                Console.Write("C ");
+                                Console.ForegroundColor = ConsoleColor.DarkGray;
+                                Console.Write("   \u25a0   ");
                                 Console.ForegroundColor = ConsoleColor.White;
-                                Console.Write("| ");
                             }
                             break;
                         case CellType.QueenF:
                             {
-                                //Console.Write($"|C* | ");
-                                Console.Write($"|");
-                                Console.ForegroundColor = ConsoleColor.DarkCyan;
-                                Console.Write("C* ");
-                                Console.ForegroundColor = ConsoleColor.White;
-                                Console.Write("| ");
+                                Console.Write("   O   ");
                             }
                             break;
                         case CellType.QueenS:
                             {
-                                Console.Write($"|");
-                                Console.ForegroundColor = ConsoleColor.DarkMagenta;
-                                Console.Write("C* ");
+                                Console.ForegroundColor = ConsoleColor.DarkGray;
+                                Console.Write("   O   ");
                                 Console.ForegroundColor = ConsoleColor.White;
-                                Console.Write("| ");
                             }
                             break;
                         case CellType.Empty:
                             {
                                 if (DoesCordExistInUserListOfEmptyCells(new Point(i, j), user))
                                 {
-                                    Console.Write("|");
-                                    Console.BackgroundColor = user.Color;
-                                    Console.Write("   ");
+                                    
+                                    Console.BackgroundColor = ConsoleColor.DarkRed;
+                                    Console.Write("       ");
                                     Console.BackgroundColor = ConsoleColor.Black;
-                                    Console.Write("| ");
+                                    
                                 }
 
-                                else Console.Write("|   | ");
+                                else Console.Write("       ");
                             }
                             break;
                     }
+                    Console.BackgroundColor = ConsoleColor.Black;
                 }
+                Console.Write($"\u2502");
                 Console.WriteLine();
+                PrintRaw(i, user);
             }
-            Console.Write(" -----------------------------------------------\n");
+
+            Console.Write("  \u2514");
+            for (int i = 0; i < 18; i++)
+            {
+                Console.Write("\u2500\u2500\u2500");
+            }
+
+            Console.Write("\u2500\u2500\u2518");
+            Console.WriteLine();
         }
+        // FIELD
 
         public bool DoesCheckOnFieldCanBit(User user)
         {
@@ -215,7 +283,7 @@ namespace CheckersWithBot.FieldModel
             }
             return false;
         }
-
+        
 
         public void CollectAllPossibleStepsToMoveCheck(Point points, User user)
         {

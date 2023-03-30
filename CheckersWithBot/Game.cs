@@ -30,33 +30,35 @@ namespace CheckersWithBot
                 if (Users[i].Name == name) return true;
             return false;
         }
-
         private void FillDataForPlayers()
         {
-            Users[0].Color = ConsoleColor.DarkCyan;
+            Users[0].Color = ConsoleColor.White;
             Users[0].TypeDef = CellType.CheckerF;
             Users[0].TypeQ = CellType.QueenF;
-            Users[1].Color = ConsoleColor.DarkMagenta;
+            Users[1].Color = ConsoleColor.Black;
             Users[1].TypeDef = CellType.CheckerS;
             Users[1].TypeQ = CellType.QueenS;
         }
-
         private void InputOfCords(ref int cordX, ref int cordY)
         {
             do
             {
-                Console.Write("Cord X: ");
+                Console.Write("Cord X (number): ");
                 int.TryParse(Console.ReadLine(), out cordX);
-                Console.Write("Cord Y: ");
+                Console.Write("Cord Y (letter): ");
                 char.TryParse(Console.ReadLine().ToUpper(), out char temp);
                 cordY = (temp - _toGetNumber);
 
-            } while (cordX < 0 || cordX >= Field.Map.GetLength(0) ||
+            } while (cordX <= 0 || cordX >= Field.Map.GetLength(0) ||
                      cordY < 0 || cordY >= Field.Map.GetLength(1));
+
+            cordX--;
         }
+
 
         public void Start()
         {
+            Console.Clear();
             MenuInGame menuInGame = new MenuInGame();
             ExtraMenu extraMenu = new ExtraMenu();
             int cordX = 0;
@@ -70,10 +72,10 @@ namespace CheckersWithBot
             {
                 for (int i = 0; i < Users.Count; i++)
                 {
-                    Console.Clear();
                     Field.PrintField(Users[i]);
                     if (Users[i].GetType() == typeof(Player))
                     {
+                        Console.WriteLine($"{Users[i].Name} your turn.");
                         do
                         {
                             step = true;
@@ -88,17 +90,16 @@ namespace CheckersWithBot
                             {
                                 case MenuInGame.DoStep:
                                     {
-                                        Console.WriteLine($"{Users[i].Name} enter cords of your check.");
-                                        //Users[i].CordsOfEmptyCells = Field.DoesPlayerCanBitAFigure(Users[i]);
                                         if (Field.DoesCheckOnFieldCanBit(Users[i])) // якщо гравецб може побити шашку
                                         {
                                             //collect able to bit. point and list of points that could be killed by that check
                                             Field.PrintField(Users[i]);
-
-                                            //Users[i].DoesBitSmbBefore = true;
                                         }
+
+
                                         else 
                                         {
+                                            Console.WriteLine("Choose your checker: ");
                                             do
                                             {
                                                 InputOfCords(ref cordX, ref cordY);
@@ -106,6 +107,7 @@ namespace CheckersWithBot
                                                      Field.Map[cordX, cordY].Type != Users[i].TypeQ);
 
                                             Field.CollectAllPossibleStepsToMoveCheck(new Point(cordX, cordY), Users[i]); // збір всіх можливих ходів для шашки яку вибрав юзер
+                                            Console.Clear();
                                             Field.PrintField(Users[i]);
 
                                             bool didUserDoStep = false;
@@ -124,6 +126,7 @@ namespace CheckersWithBot
                                                             int tempCordX = 0;
                                                             int tempCordY = 0;
                                                             int countOfTries = 0;
+                                                            Console.WriteLine("Choose cell: ");
                                                             do
                                                             {
                                                                 InputOfCords(ref tempCordX, ref tempCordY);
@@ -170,8 +173,8 @@ namespace CheckersWithBot
                     }
                     else if (((Bot)Users[i]).BotStep(this, i)) Users[i].DoesBitSmbBefore = true;
 
-                    
-                    //clear all list of cords after step
+                    Console.Clear();
+                    //clear all lists of cords after step
                 }
             } while (!isEnd);
             Console.WriteLine($"{Users[0].Name} - WON! HIS COLOR WAS - {Users[0].Color}.");
