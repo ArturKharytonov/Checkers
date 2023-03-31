@@ -22,7 +22,6 @@ namespace CheckersWithBot
         {
             return CordX.GetHashCode() ^ CordY.GetHashCode();
         }
-
         public override bool Equals(object obj)
         {
             if (obj == null || GetType() != obj.GetType())

@@ -43,6 +43,29 @@ namespace CheckersWithBot.FieldModel
             }
         }
 
+        public Field(Field field)
+        {
+            Map = new Cell[8, 8];
+            for (int i = 0; i < Map.GetLength(0); i++)
+            {
+                for (int j = 0; j < Map.GetLength(1); j++)
+                {
+                    Map[i, j] = new Cell(field.Map[i, j].Type, new Point(i, j));
+                }
+            }
+        }
+        public int CountOfCheckersOnBoard(User user)
+        {
+            int count = 0;
+            for (int i = 0; i < Map.GetLength(0); i++)
+            {
+                for (int j = 0; j < Map.GetLength(1); j++)
+                {
+                    if (Map[i, j].Type == user.TypeDef || Map[i, j].Type == user.TypeQ) count++;
+                }
+            }
+            return count;
+        }
         // FIELD
         public void PrintRaw(int i, User user)
         { 
@@ -464,7 +487,6 @@ namespace CheckersWithBot.FieldModel
                         if (cells.Count > 0)
                             dict.Add(new Point(i, j), cells);
                         
-                        
                     }
                 }
             }
@@ -477,10 +499,10 @@ namespace CheckersWithBot.FieldModel
         public List<Point> GetEmptyCells(User user, Point point)
         {
             List<Point> points = new List<Point>();
-            user.UserAbleToBit.TryGetValue(point, out points);
-            if (points.Count > 0) return points;
-
-
+            if (user.UserAbleToBit.TryGetValue(point, out points))
+            {
+                if (points.Count > 0) return points;
+            }
             return new List<Point>();
         }
         public bool DoesEmptyCellExistDict(User user, Point point, Point emptyCell)
@@ -510,5 +532,29 @@ namespace CheckersWithBot.FieldModel
 
             return null;
         }
+        public bool CanAnotherPlayerBeatOurChecker(Point point, User user)
+        {
+            for (int i = 0; i < Map.GetLength(0); i++)
+            {
+                for (int j = 0; j < Map.GetLength(1); j++)
+                {
+                    if (Map[i, j].Type != user.TypeDef &&
+                        Map[i, j].Type != user.TypeQ &&
+                        Map[i, j].Type != CellType.Empty)
+                    {
+                        List<Point> cordsOfEmptyCells = CollectEmptyCells(Map[i, j]);
+
+                        foreach (Point value in cordsOfEmptyCells)
+                        {
+                            Point enemyChecker = GetEnemyPoint(new Point(i, j), value);
+                            if (enemyChecker.CordX == point.CordX && enemyChecker.CordY == point.CordY) return true;
+                        }
+                    }
+                }
+            }
+            return false;
+        }
+        
+        
     }
 }

@@ -49,11 +49,9 @@ namespace CheckersWithBot
                 char.TryParse(Console.ReadLine().ToUpper(), out char temp);
                 cordY = (temp - _toGetNumber);
                 cordX--;
-            } while (cordX <= 0 || cordX >= Field.Map.GetLength(0) ||
+            } while (cordX < 0 || cordX >= Field.Map.GetLength(0) ||
                      cordY < 0 || cordY >= Field.Map.GetLength(1));
-
         }
-
 
         public void Start()
         {
@@ -209,16 +207,17 @@ namespace CheckersWithBot
                                                         break;
                                                 }
                                             } while (extraMenu != ExtraMenu.ChooseAnotherChecker && !didUserDoStep);
-                                        } //якщо гравецб не може побити шашку
+                                        } //якщо гравець не може побити шашку
                                     }
                                     break;
                                 case MenuInGame.Surrender:
                                     {
                                         Users.RemoveAt(i);
                                         isEnd = true;
+                                        
                                     }
                                     break;
-                                case MenuInGame.OfferDraw: // IN proccess
+                                case MenuInGame.OfferDraw:
                                     {
                                         if (OfferDraw(i))
                                         {
@@ -233,29 +232,35 @@ namespace CheckersWithBot
                                     break;
                             }
                         } while (!step);
-                    }
-                    else if (((Bot)Users[i]).BotStep(this, i)) Users[i].DoesBitSmbBefore = true;
+                    } // PLAYER LOGIC
 
+                    else
+                    {
+                        ((Bot)Users[i]).BotStep(this, i); 
+                    } //BOT LOGIC
+
+                    Console.ReadLine();
                     Console.Clear();
 
-                    IfGotQueen(i); // does player got queen
-                    if (CountOfCheckersOnBoard(Users[0]) == 0)
+                    if (Users.Count == 2)
                     {
-                        Users.RemoveAt(0);
-                        isEnd = true;
-                        break;
-                    } // if lost first Player
-                    if (CountOfCheckersOnBoard(Users[1]) == 0)
-                    {
-                        Users.RemoveAt(1);
-                        isEnd = true;
-                        break;
-                    } // if lost second Player
-                    
+                        IfGotQueen(i); // does player got queen
+                        if (Field.CountOfCheckersOnBoard(Users[0]) == 0 && Users.Count == 2)
+                        {
+                            Users.RemoveAt(0);
+                            isEnd = true;
+                            break;
+                        } // if lost first Player
+                        if (Field.CountOfCheckersOnBoard(Users[1]) == 0 && Users.Count == 2)
+                        {
+                            Users.RemoveAt(1);
+                            isEnd = true;
+                            break;
+                        } // if lost second Player
 
-                    if (Field.DoesCheckerOnFieldCanBit(Users[i])) i--;
+                        if (Field.DoesCheckerOnFieldCanBit(Users[i])) i--;
+                    }
 
-                    //clear all lists of cords after step
                 }
             } while (!isEnd);
 
@@ -266,18 +271,7 @@ namespace CheckersWithBot
                 Console.WriteLine($"{Users[0].Name} - WON! HIS COLOR WAS - {Users[0].Color}.");
         }
 
-        public int CountOfCheckersOnBoard(User user)
-        {
-            int count = 0;
-            for (int i = 0; i < Field.Map.GetLength(0); i++)
-            {
-                for (int j = 0; j < Field.Map.GetLength(1); j++)
-                {
-                    if(Field.Map[i, j].Type == user.TypeDef || Field.Map[i, j].Type == user.TypeQ) count++;
-                }
-            }
-            return count;
-        }
+        
         public bool OfferDraw(int index)
         {
             int tempIndex = 0;
@@ -298,8 +292,12 @@ namespace CheckersWithBot
 
                 return choice == 'y';
             }
+            else // write logic when bot need to accept draw
+            {
+
+            }
             return false;
-        }
+        } // bug WRITE TILL END
         public void IfGotQueen(int indexOfPlayer)
         {
             if (indexOfPlayer == 0)
