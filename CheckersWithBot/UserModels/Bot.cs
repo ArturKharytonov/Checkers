@@ -16,10 +16,10 @@ namespace CheckersWithBot.UserModels
             DoesBitSmbBefore = false;
         }
 
-        private int GetEnemyIndex(int index)
+        private User GetEnemy(List<User> users)
         {
-            if (index == 0) return 1;
-            return 0;
+            if (this.Name == users[0].Name) return users[1];
+            return users[0];
         }
         public int GetCountOfEmptyCells(Field field)
         {
@@ -47,7 +47,7 @@ namespace CheckersWithBot.UserModels
         public void Moving(Point startPoint, Point endPoint, Field field)
         {
             Point enemyChecker =
-                field.GetEnemyPoint(startPoint, endPoint);
+                field.GetEnemyPoint(startPoint, endPoint); // bug will be here if bot will beat by queen
 
             field.Map[enemyChecker.CordX, enemyChecker.CordY].Type = CellType.Empty;
 
@@ -74,10 +74,33 @@ namespace CheckersWithBot.UserModels
             }
             else
             {
-                //Console.ReadLine();
+                if (CanAnotherPlayerBeatChecker(game)) // якшо опонент може побити шашку бота
+                {
+
+                }
+                else
+                {
+                    (Point, Point) forCarefulStep = CarefulStep(game);
+
+                    if (IsPossibleToGetQueen(game.Field, indexOfPlayer)) // чи можна отримати королеву
+                        GetQueen(game.Field, indexOfPlayer);
+
+                    else if (false) // чи можна зробити безпечний хід щоб поставити іншу шашку під загрозу
+                    {
+                        
+                    }
+                    else if (false) // розміни
+                    {
+
+                    }
+                    else if (forCarefulStep.Item1 != null && // пошук найбільш безпечного ходу який не зробить ніякої шкоди
+                             forCarefulStep.Item2 != null) 
+                        game.Field.MoveCheck(forCarefulStep.Item1, forCarefulStep.Item2);
+                    
+                    // вибір рандомного ходу
+                }
             }
         }
-
 
         // beating
         /// Maybe i need replace all steps not step by step.
@@ -187,6 +210,131 @@ namespace CheckersWithBot.UserModels
 
 
         // beating of bots' checkers!!!
-        
+        // is bots' checker under danger
+        private bool CanAnotherPlayerBeatChecker(Game game)
+        {
+            User enemy;
+            if(this.Name == game.Users[0].Name) enemy = game.Users[1];
+            else enemy = game.Users[0];
+
+            if (game.Field.DoesCheckerOnFieldCanBit(enemy)) return true;
+
+            return false;
+        }
+
+        // create logic to protect checkers!
+        // is bots' checker under danger
+
+        // is it possible to get a queen
+        private bool IsPossibleToGetQueen(Field field, int indexOfPlayer)
+        {
+            if (indexOfPlayer == 0)
+            {
+                for (int i = 0; i < field.Map.GetLength(1); i++)
+                {
+                    if (field.Map[field.Map.GetLength(0) - 2, i].Type == CellType.CheckerF &&
+                        ((i + 1 < field.Map.GetLength(1) &&
+                         field.Map[field.Map.GetLength(0) - 1, i + 1].Type == CellType.Empty) ||
+                        (i - 1 >= 0 &&
+                         field.Map[field.Map.GetLength(0) - 1, i - 1].Type == CellType.Empty))) return true;
+                }
+            }
+            else
+            {
+                for (int i = 0; i < field.Map.GetLength(1); i++)
+                {
+                    if (field.Map[1, i].Type == CellType.CheckerS &&
+                        ((i + 1 < field.Map.GetLength(1) &&
+                          field.Map[0, i + 1].Type == CellType.Empty) ||
+                         (i - 1 >= 0 &&
+                          field.Map[0, i - 1].Type == CellType.Empty))) return true;
+                }
+            }
+            return false;
+        }
+        private void GetQueen(Field field, int indexOfPlayer)
+        {
+            if (indexOfPlayer == 0)
+            {
+                for (int i = 0; i < field.Map.GetLength(1); i++)
+                {
+                    if (field.Map[field.Map.GetLength(0) - 2, i].Type == CellType.CheckerF)
+                    {
+                        if (i + 1 < field.Map.GetLength(1) &&
+                            field.Map[field.Map.GetLength(0) - 1, i + 1].Type == CellType.Empty)
+                            field.MoveCheck(new Point(field.Map.GetLength(0) - 2, i),
+                                new Point(field.Map.GetLength(0) - 1, i + 1));
+                        
+                        else if (i - 1 >= 0 && 
+                                 field.Map[field.Map.GetLength(0) - 1, i - 1].Type == CellType.Empty)
+                            field.MoveCheck(new Point(field.Map.GetLength(0) - 2, i),
+                                new Point(field.Map.GetLength(0) - 1, i - 1));
+                    }
+                }
+            }
+            else
+            {
+                for (int i = 0; i < field.Map.GetLength(1); i++)
+                {
+                    if (field.Map[1, i].Type == CellType.CheckerS)
+                    {
+                        if (i + 1 < field.Map.GetLength(1) &&
+                            field.Map[0, i + 1].Type == CellType.Empty)
+                            Moving(new Point(0, i),
+                                new Point(0, i + 1),
+                                field);
+
+                        else if (i - 1 >= 0 &&
+                                 field.Map[0, i - 1].Type == CellType.Empty)
+                            Moving(new Point(0, i),
+                                new Point(0, i - 1),
+                                field);
+                    }
+                }
+            }
+        }
+        // is it possible to get a queen
+
+
+        // careful step with danger for enemy
+        // careful step with danger for enemy
+
+        // exchanges
+        // exchanges
+
+        // just careful step
+        public (Point, Point) CarefulStep(Game game)
+        {
+            User enemy = GetEnemy(game.Users);
+            for (int i = 0; i < game.Field.Map.GetLength(0); i++)
+            {
+                for (int j = 0; j < game.Field.Map.GetLength(1); j++)
+                {
+                    if (game.Field.Map[i, j].Type == this.TypeDef ||
+                        game.Field.Map[i, j].Type == this.TypeQ)
+                    {
+                        game.Field.CollectAllPossibleStepsToMoveCheck(new Point(i, j), this);
+                        Point starPoint = new Point(i, j);
+                        Field copyField = new Field(game.Field);
+                        foreach (Point endPoint in this.CordsOfEmptyCells)
+                        {
+                            game.Field.MoveCheck(starPoint, endPoint);
+                            if (!game.Field.DoesCheckerOnFieldCanBit(enemy))
+                            {
+                                game.Field = new Field(copyField);
+                                return (starPoint, endPoint);
+                            }
+                            game.Field = new Field(copyField);
+                        }
+                    }
+                }
+            }
+            return (null, null);
+        }
+        // just careful step
+
+        // random step
+
+        // random step
     }
 }

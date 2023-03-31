@@ -62,7 +62,7 @@ namespace CheckersWithBot
             int cordY = 0;
             bool isEnd = false;
             bool step = true;
-            
+
             FillDataForPlayers();
 
             do
@@ -260,7 +260,6 @@ namespace CheckersWithBot
 
                         if (Field.DoesCheckerOnFieldCanBit(Users[i])) i--;
                     }
-
                 }
             } while (!isEnd);
 
@@ -271,7 +270,6 @@ namespace CheckersWithBot
                 Console.WriteLine($"{Users[0].Name} - WON! HIS COLOR WAS - {Users[0].Color}.");
         }
 
-        
         public bool OfferDraw(int index)
         {
             int tempIndex = 0;
@@ -307,7 +305,6 @@ namespace CheckersWithBot
                     if (Field.Map[Field.Map.GetLength(0) - 1, i].Type == CellType.CheckerF)
                         Field.Map[Field.Map.GetLength(0) - 1, i].Type = CellType.QueenF;
                 }
-                
             }
             else
             {
