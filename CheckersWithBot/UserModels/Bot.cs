@@ -217,10 +217,8 @@ namespace CheckersWithBot.UserModels
         // is bots' checker under danger
         private bool CanAnotherPlayerBeatChecker(Game game)
         {
-            User enemy;
-            if(this.Name == game.Users[0].Name) enemy = game.Users[1];
-            else enemy = game.Users[0];
-
+            User enemy = GetEnemy(game.Users);
+            
             if (game.Field.DoesCheckerOnFieldCanBit(enemy)) return true;
 
             return false;
@@ -305,6 +303,8 @@ namespace CheckersWithBot.UserModels
         {
             field.MoveCheck(startPoint, endPoint);
             if (!field.DoesCheckerOnFieldCanBit(enemy) && field.DoesCheckerOnFieldCanBit(this))
+            // bug if bot came from block when enemy can bit his checker this "if" won't work, ->
+            // bug: maybe i need ref here few bool variables or create method can enemy beat any checker besides these which bot declined protecting
             {
                 field = new Field(copy);
                 return true;
@@ -380,7 +380,7 @@ namespace CheckersWithBot.UserModels
                         foreach (Point endPoint in this.CordsOfEmptyCells)
                         {
                             game.Field.MoveCheck(starPoint, endPoint);
-                            if (!game.Field.DoesCheckerOnFieldCanBit(enemy))
+                            if (!game.Field.DoesCheckerOnFieldCanBit(enemy)) //bug: as well as in careful step with danger for enemy
                             {
                                 game.Field = new Field(copyField);
                                 return (starPoint, endPoint);

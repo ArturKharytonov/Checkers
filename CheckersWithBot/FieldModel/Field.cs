@@ -216,19 +216,26 @@ namespace CheckersWithBot.FieldModel
             }
             return false;
         }
+
         public bool DoesCurrentCheckerCanBitAnyCheck(Cell cell)
         {
             CellType enemyChecker;
             CellType enemyQueen;
+            CellType currentPlayerChecker;
+            CellType currentPlayerQueen;
             if (cell.Type == CellType.CheckerF || cell.Type == CellType.QueenF)
             {
                 enemyChecker = CellType.CheckerS;
                 enemyQueen = CellType.QueenS;
+                currentPlayerChecker = CellType.CheckerF;
+                currentPlayerQueen = CellType.QueenF;
             }
             else
             {
                 enemyChecker = CellType.CheckerF;
                 enemyQueen = CellType.QueenF;
+                currentPlayerChecker = CellType.CheckerS;
+                currentPlayerQueen = CellType.QueenS;
             }
 
             if (cell.Type == CellType.CheckerF || cell.Type == CellType.CheckerS) // перевірка чи проста шашка може побити
@@ -269,60 +276,83 @@ namespace CheckersWithBot.FieldModel
             {
                 int temp = 1;
                 int j = cell.Point.CordY;
+                bool blockMoveRight = false;
+                bool blockMoveLeft = false;
 
-                for (int i = cell.Point.CordX + 1; i < Map.GetLength(0); i++, temp++) // перевірка вниз
+                for (int i = cell.Point.CordX; i < Map.GetLength(0); i++, temp++) // перевірка вниз //bug with cordX +- 1 mb i will replace it for time everywhere
                 {
                     if ((i + 2 >= 0 && i + 2 < Map.GetLength(0)) &&
-                        (j + temp + 1 >= 0 && j + temp + 1 < Map.GetLength(1)))
+                        (j + temp + 1 >= 0 && j + temp + 1 < Map.GetLength(1)) && !blockMoveRight)
                     {
-                        if (Map[i + 2, j + temp + 1].Type == CellType.Empty &&
+                        if (Map[i + 1, j + temp].Type == currentPlayerChecker ||
+                            Map[i + 1, j + temp].Type == currentPlayerQueen) blockMoveRight = true;
+
+                        else if (Map[i + 2, j + temp + 1].Type == CellType.Empty &&
                             (Map[i + 1, j + temp].Type == enemyChecker ||
                              Map[i + 1, j + temp].Type == enemyQueen)) return true;
                     }
                     else if ((i + 2 >= 0 && i + 2 < Map.GetLength(0)) &&
-                             (j - temp - 1 >= 0 && j - temp - 1 < Map.GetLength(1)))
+                             (j - temp - 1 >= 0 && j - temp - 1 < Map.GetLength(1)) && !blockMoveLeft)
                     {
-                        if (Map[i + 2, j - temp - 1].Type == CellType.Empty &&
-                            (Map[i + 1, j - temp].Type == enemyChecker ||
-                             Map[i + 1, j - temp].Type == enemyQueen)) return true;
+                        if (Map[i + 1, j - temp].Type == currentPlayerChecker ||
+                            Map[i + 1, j - temp].Type == currentPlayerQueen) blockMoveLeft = true;
+
+                        else if (Map[i + 2, j - temp - 1].Type == CellType.Empty &&
+                                 (Map[i + 1, j - temp].Type == enemyChecker ||
+                                  Map[i + 1, j - temp].Type == enemyQueen)) return true;
                     }
                 }
 
+                blockMoveLeft = false;
+                blockMoveRight = false;
                 temp = 1;
-                for (int i = cell.Point.CordX - 1; i >= 0; i--, temp++) // перевірка вверх
+                for (int i = cell.Point.CordX; i >= 0; i--, temp++) // перевірка вверх
                 {
                     if ((i - 2 >= 0 && i - 2 < Map.GetLength(0)) &&
-                        (j + temp + 1 >= 0 && j + temp + 1 < Map.GetLength(1)))
+                        (j + temp + 1 >= 0 && j + temp + 1 < Map.GetLength(1)) && !blockMoveRight)
                     {
-                        if (Map[i - 2, j + temp + 1].Type == CellType.Empty &&
+
+                        if (Map[i - 1, j + temp].Type == currentPlayerChecker ||
+                            Map[i - 1, j + temp].Type == currentPlayerQueen) blockMoveRight = true;
+
+                        else if (Map[i - 2, j + temp + 1].Type == CellType.Empty &&
                             (Map[i - 1, j + temp].Type == enemyChecker ||
                              Map[i - 1, j + temp].Type == enemyQueen)) return true;
                     }
                     else if ((i - 2 >= 0 && i - 2 < Map.GetLength(0)) &&
-                             (j - temp - 1 >= 0 && j - temp - 1 < Map.GetLength(1)))
+                             (j - temp - 1 >= 0 && j - temp - 1 < Map.GetLength(1)) && !blockMoveLeft)
                     {
-                        if (Map[i - 2, j - temp - 1].Type == CellType.Empty &&
+                        if (Map[i - 1, j - temp].Type == currentPlayerChecker ||
+                            Map[i - 1, j - temp].Type == currentPlayerQueen) blockMoveLeft = true;
+
+                        else if (Map[i - 2, j - temp - 1].Type == CellType.Empty &&
                             (Map[i - 1, j - temp].Type == enemyChecker ||
                              Map[i - 1, j - temp].Type == enemyQueen)) return true;
                     }
                 }
             }
             return false;
-        }
+        } // checking if checker can bit bug maybe for queen also
         public List<Point> CollectEmptyCells(Cell cell)
         {
             List<Point> emptyCells = new List<Point>();
             CellType enemyChecker;
             CellType enemyQueen;
+            CellType currentPlayerChecker;
+            CellType currentPlayerQueen;
             if (cell.Type == CellType.CheckerF || cell.Type == CellType.QueenF)
             {
                 enemyChecker = CellType.CheckerS;
                 enemyQueen = CellType.QueenS;
+                currentPlayerChecker = CellType.CheckerF;
+                currentPlayerQueen = CellType.QueenF;
             }
             else
             {
                 enemyChecker = CellType.CheckerF;
                 enemyQueen = CellType.QueenF;
+                currentPlayerChecker = CellType.CheckerS;
+                currentPlayerQueen = CellType.QueenS;
             }
 
             if (cell.Type == CellType.CheckerF || cell.Type == CellType.CheckerS) // перевірка чи проста шашка може побити
@@ -360,13 +390,17 @@ namespace CheckersWithBot.FieldModel
             {
                 int temp = 1;
                 int j = cell.Point.CordY;
-
-                for (int i = cell.Point.CordX + 1; i < Map.GetLength(0); i++, temp++) // перевірка вниз
+                bool blockMoveRight = false;
+                bool blockMoveLeft = false;
+                for (int i = cell.Point.CordX; i < Map.GetLength(0); i++, temp++) // перевірка вниз
                 {
                     if ((i + 2 >= 0 && i + 2 < Map.GetLength(0)) &&
-                        (j + temp + 1 >= 0 && j + temp + 1 < Map.GetLength(1)))
+                        (j + temp + 1 >= 0 && j + temp + 1 < Map.GetLength(1)) && !blockMoveRight)
                     {
-                        if (Map[i + 2, j + temp + 1].Type == CellType.Empty &&
+                        if (Map[i + 1, j + temp].Type == currentPlayerChecker ||
+                            Map[i + 1, j + temp].Type == currentPlayerQueen) blockMoveRight = true;
+
+                        else if (Map[i + 2, j + temp + 1].Type == CellType.Empty &&
                             (Map[i + 1, j + temp].Type == enemyChecker ||
                              Map[i + 1, j + temp].Type == enemyQueen))
                         {
@@ -377,9 +411,12 @@ namespace CheckersWithBot.FieldModel
                     }
 
                     else if ((i + 2 >= 0 && i + 2 < Map.GetLength(0)) &&
-                             (j - temp - 1 >= 0 && j - temp - 1 < Map.GetLength(1)))
+                             (j - temp - 1 >= 0 && j - temp - 1 < Map.GetLength(1)) && !blockMoveLeft)
                     {
-                        if (Map[i + 2, j - temp - 1].Type == CellType.Empty &&
+                        if (Map[i + 1, j - temp].Type == currentPlayerChecker ||
+                            Map[i + 1, j - temp].Type == currentPlayerQueen) blockMoveLeft = true;
+
+                        else if (Map[i + 2, j - temp - 1].Type == CellType.Empty &&
                             (Map[i + 1, j - temp].Type == enemyChecker ||
                              Map[i + 1, j - temp].Type == enemyQueen))
                         {
@@ -390,12 +427,17 @@ namespace CheckersWithBot.FieldModel
                     }
                 }
 
+                blockMoveRight = false;
+                blockMoveLeft = false;
                 temp = 1;
-                for (int i = cell.Point.CordX - 1; i >= 0; i--, temp++) // перевірка вверх
+                for (int i = cell.Point.CordX; i >= 0; i--, temp++) // перевірка вверх
                 {
                     if ((i - 2 >= 0 && i - 2 < Map.GetLength(0)) &&
-                        (j + temp + 1 >= 0 && j + temp + 1 < Map.GetLength(1)))
+                        (j + temp + 1 >= 0 && j + temp + 1 < Map.GetLength(1)) && !blockMoveRight)
                     {
+                        if (Map[i - 1, j + temp].Type == currentPlayerChecker ||
+                            Map[i - 1, j + temp].Type == currentPlayerQueen) blockMoveRight = true;
+
                         if (Map[i - 2, j + temp + 1].Type == CellType.Empty &&
                             (Map[i - 1, j + temp].Type == enemyChecker ||
                              Map[i - 1, j + temp].Type == enemyQueen))
@@ -406,9 +448,12 @@ namespace CheckersWithBot.FieldModel
                         }
                     }
                     else if ((i - 2 >= 0 && i - 2 < Map.GetLength(0)) &&
-                             (j - temp - 1 >= 0 && j - temp - 1 < Map.GetLength(1)))
+                             (j - temp - 1 >= 0 && j - temp - 1 < Map.GetLength(1)) && !blockMoveLeft)
                     {
-                        if (Map[i - 2, j - temp - 1].Type == CellType.Empty &&
+                        if (Map[i - 1, j - temp].Type == currentPlayerChecker ||
+                            Map[i - 1, j - temp].Type == currentPlayerQueen) blockMoveLeft = true;
+
+                        else if (Map[i - 2, j - temp - 1].Type == CellType.Empty &&
                             (Map[i - 1, j - temp].Type == enemyChecker ||
                              Map[i - 1, j - temp].Type == enemyQueen))
                         {
@@ -420,9 +465,9 @@ namespace CheckersWithBot.FieldModel
                 }
             }
             return emptyCells;
-        }
+        } // collecting if checker can bit bug maybe for queen also
 
-        public void CollectAllPossibleStepsToMoveCheck(Point points, User user)
+        public void CollectAllPossibleStepsToMoveCheck(Point points, User user) // bug maybe for queen also
         {
             if (Map[points.CordX, points.CordY].Type == CellType.CheckerF)
             {
@@ -453,30 +498,41 @@ namespace CheckersWithBot.FieldModel
             {
                 int temp = 1;
                 int j = points.CordY;
+                bool blockMoveRight = false;
+                bool blockMoveLeft = false;
 
-                for (int i = points.CordX + 1; i < Map.GetLength(0); i++, temp++) // перевірка вниз
+                for (int i = points.CordX; i < Map.GetLength(0); i++, temp++) // перевірка вниз
                 {
+                    
                     if ((i + 1 >= 0 && i + 1 < Map.GetLength(0)) &&
                         (j + temp + 1 >= 0 && j + temp + 1 < Map.GetLength(1)) &&
-                        Map[i + 1, j + temp + 1].Type == CellType.Empty) user.CordsOfEmptyCells.Add(new Point(i + 1, j + temp + 1));
+                        Map[i + 1, j + temp + 1].Type == CellType.Empty && !blockMoveRight) user.CordsOfEmptyCells.Add(new Point(i + 1, j + temp + 1));
+                    else blockMoveRight = true;
 
-                    else if ((i + 1 >= 0 && i + 1 < Map.GetLength(0)) &&
-                             (j - temp - 1 >= 0 && j - temp - 1 < Map.GetLength(1)) &&
-                             Map[i + 1, j - temp - 1].Type == CellType.Empty) user.CordsOfEmptyCells.Add(new Point(i + 1, j - temp - 1));
-
+                    if ((i + 1 >= 0 && i + 1 < Map.GetLength(0)) &&
+                        (j - temp - 1 >= 0 && j - temp - 1 < Map.GetLength(1)) &&
+                        Map[i + 1, j - temp - 1].Type == CellType.Empty && !blockMoveLeft)
+                        user.CordsOfEmptyCells.Add(new Point(i + 1, j - temp - 1));
+                    else blockMoveLeft = true;
                 }
 
                 temp = 1;
-                for (int i = points.CordX - 1; i >= 0; i--, temp++) // перевірка вверх
+                blockMoveRight = false;
+                blockMoveLeft = false;
+
+                for (int i = points.CordX; i >= 0; i--, temp++) // перевірка вверх
                 {
                     if ((i - 1 >= 0 && i - 1 < Map.GetLength(0)) &&
                         (j + temp + 1 >= 0 && j + temp + 1 < Map.GetLength(1)) &&
-                        Map[i - 1, j + temp + 1].Type == CellType.Empty) user.CordsOfEmptyCells.Add(new Point(i - 1, j + temp + 1));
+                        Map[i - 1, j + temp + 1].Type == CellType.Empty && !blockMoveRight) 
+                        user.CordsOfEmptyCells.Add(new Point(i - 1, j + temp + 1));
+                    else blockMoveRight = true;
 
-
-                    else if ((i - 1 >= 0 && i - 1 < Map.GetLength(0)) &&
+                    if ((i - 1 >= 0 && i - 1 < Map.GetLength(0)) &&
                              (j - temp - 1 >= 0 && j - temp - 1 < Map.GetLength(1)) &&
-                             Map[i - 1, j - temp - 1].Type == CellType.Empty) user.CordsOfEmptyCells.Add(new Point(i - 1, j - temp - 1));
+                             Map[i - 1, j - temp - 1].Type == CellType.Empty && !blockMoveLeft) 
+                        user.CordsOfEmptyCells.Add(new Point(i - 1, j - temp - 1));
+                    else blockMoveLeft = true;
                 }
             }
         }
@@ -498,7 +554,6 @@ namespace CheckersWithBot.FieldModel
 
             Map[endPoint.CordX, endPoint.CordY].Type = temp;
         }// Move in default step
-
 
         //collect all checkers that could be killed and current player checkers that can bit these checkers.
         public Dictionary<Point, List<Point>> CollectDictionary(User user)
@@ -546,19 +601,78 @@ namespace CheckersWithBot.FieldModel
 
             return false;
         }
-        public Point GetEnemyPoint(Point point, Point emptyCell) // bug fixxxxxxxxxx
+        public Point GetEnemyPoint(Point point, Point emptyCell) // bug maybe with queen
         {
-            //bug: logic is only for default checker "I need find enemyCell if queen beats"
+            if (Map[point.CordX, point.CordY].Type == CellType.CheckerF ||
+                Map[point.CordX, point.CordY].Type == CellType.CheckerS)
+            {
+                if (point.CordX + 2 == emptyCell.CordX && point.CordY + 2 == emptyCell.CordY)
+                    return new Point(point.CordX + 1, point.CordY + 1);
+                if (point.CordX + 2 == emptyCell.CordX && point.CordY - 2 == emptyCell.CordY)
+                    return new Point(point.CordX + 1, point.CordY - 1);
+                if (point.CordX - 2 == emptyCell.CordX && point.CordY + 2 == emptyCell.CordY)
+                    return new Point(point.CordX - 1, point.CordY + 1);
+                if (point.CordX - 2 == emptyCell.CordX && point.CordY - 2 == emptyCell.CordY)
+                    return new Point(point.CordX - 1, point.CordY - 1);
+            }
+            else
+            {
+                if (point.CordX < emptyCell.CordX) // будем рухатись вверх
+                {
+                    if (point.CordY < emptyCell.CordY)
+                    {
+                        for (int i = point.CordX + 1; i < emptyCell.CordX; i++)
+                        {
+                            for (int j = point.CordY + 1; j < emptyCell.CordY; j++)
+                            {
+                                if(Map[i, j].Type != CellType.Empty &&
+                                   Map[i, j].Type != Map[point.CordX, point.CordY].Type) 
+                                    return new Point(i, j);
+                            }
+                        }
+                    } // і праворуч
+                    else
+                    {
+                        for (int i = point.CordX + 1; i < emptyCell.CordX; i++)
+                        {
+                            for (int j = emptyCell.CordY - 1; j > point.CordY; j--)
+                            {
+                                if (Map[i, j].Type != CellType.Empty &&
+                                    Map[i, j].Type != Map[point.CordX, point.CordY].Type) 
+                                    return new Point(i, j);
+                            }
+                        }
+                    } // і ліворуч
+                }
 
-            if (point.CordX + 2 == emptyCell.CordX && point.CordY + 2 == emptyCell.CordY)
-                return new Point(point.CordX + 1, point.CordY + 1);
-            else if(point.CordX + 2 == emptyCell.CordX && point.CordY - 2 == emptyCell.CordY) 
-                return new Point(point.CordX + 1, point.CordY - 1);
-            else if(point.CordX - 2 == emptyCell.CordX && point.CordY + 2 == emptyCell.CordY)
-                return new Point(point.CordX - 1, point.CordY + 1);
-            else if(point.CordX - 2 == emptyCell.CordX && point.CordY - 2 == emptyCell.CordY) 
-                return new Point(point.CordX - 1, point.CordY - 1);
-
+                else // будем рухатись вниз
+                {
+                    if (point.CordY < emptyCell.CordY)
+                    {
+                        for (int i = point.CordX - 1; i > emptyCell.CordX; i--)
+                        {
+                            for (int j = point.CordY + 1; j < emptyCell.CordY; j++)
+                            {
+                                if (Map[i, j].Type != CellType.Empty &&
+                                    Map[i, j].Type != Map[point.CordX, point.CordY].Type) 
+                                    return new Point(i, j);
+                            }
+                        }
+                    } // і праворуч
+                    else
+                    {
+                        for (int i = point.CordX - 1; i > emptyCell.CordX; i--)
+                        {
+                            for (int j = emptyCell.CordY - 1; j > point.CordY; j--)
+                            {
+                                if (Map[i, j].Type != CellType.Empty &&
+                                    Map[i, j].Type != Map[point.CordX, point.CordY].Type) 
+                                    return new Point(i, j);
+                            }
+                        }
+                    } // і ліворуч
+                }
+            }
             return null;
         }
         public bool CanAnotherPlayerBeatOurChecker(Point point, User user)

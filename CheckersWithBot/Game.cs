@@ -39,7 +39,7 @@ namespace CheckersWithBot
             Users[1].TypeDef = CellType.CheckerS;
             Users[1].TypeQ = CellType.QueenS;
         }
-        private void InputOfCords(ref int cordX, ref int cordY)
+        private void InputOfCords(out int cordX, out int cordY)
         {
             do
             {
@@ -95,7 +95,7 @@ namespace CheckersWithBot
                                             do
                                             {
                                                 Console.WriteLine("U can bit checker: ");
-                                                InputOfCords(ref cordX, ref cordY);
+                                                InputOfCords(out cordX, out cordY);
                                             } while ((Field.Map[cordX, cordY].Type != Users[i].TypeDef &&
                                                      Field.Map[cordX, cordY].Type != Users[i].TypeQ) ||
                                                      !Field.DoesPointExistInDict(Users[i], new Point(cordX, cordY)));
@@ -126,7 +126,7 @@ namespace CheckersWithBot
                                                                 do
                                                                 {
                                                                     Console.WriteLine("Choose empty(red) cell: ");
-                                                                    InputOfCords(ref tempX, ref tempY);
+                                                                    InputOfCords(out tempX, out tempY);
                                                                 } while (!Field.DoesEmptyCellExistDict(Users[i], new Point(cordX, cordY), new Point(tempX, tempY)));
 
                                                                 Point enemyChecker =
@@ -159,7 +159,7 @@ namespace CheckersWithBot
                                         {
                                             do
                                             {
-                                                InputOfCords(ref cordX, ref cordY);
+                                                InputOfCords(out cordX, out cordY);
                                             } while (Field.Map[cordX, cordY].Type != Users[i].TypeDef &&
                                                      Field.Map[cordX, cordY].Type != Users[i].TypeQ);
 
@@ -186,7 +186,7 @@ namespace CheckersWithBot
                                                             Console.WriteLine("Choose cell: ");
                                                             do
                                                             {
-                                                                InputOfCords(ref tempCordX, ref tempCordY);
+                                                                InputOfCords(out tempCordX, out tempCordY);
                                                             } while (!Field.DoesCordExistInUserListOfEmptyCells(new Point(tempCordX, tempCordY), Users[i]));
 
                                                             Field.MoveCheck(new Point(cordX, cordY), new Point(tempCordX, tempCordY));
