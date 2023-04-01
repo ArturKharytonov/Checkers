@@ -85,8 +85,12 @@ namespace CheckersWithBot.UserModels
                     if (IsPossibleToGetQueen(game.Field, indexOfPlayer)) // чи можна отримати королеву
                         GetQueen(game.Field, indexOfPlayer);
 
-                    else if (false) // чи можна зробити безпечний хід щоб поставити іншу шашку під загрозу
+                    else if (IsPossibleToCreateDanger(game)) // чи можна зробити безпечний хід щоб поставити іншу шашку під загрозу
                     {
+                        (Point, Point) carefulStepWithDanger = GetPointForDanger(game);
+                        if (carefulStepWithDanger.Item1 != null &&
+                            carefulStepWithDanger.Item2 != null)
+                            game.Field.MoveCheck(carefulStepWithDanger.Item1, carefulStepWithDanger.Item2);
                         
                     }
                     else if (false) // розміни
@@ -297,9 +301,66 @@ namespace CheckersWithBot.UserModels
 
 
         // careful step with danger for enemy
+        private bool IsPossible(Point startPoint, Point endPoint, Field field, Field copy, User enemy)
+        {
+            field.MoveCheck(startPoint, endPoint);
+            if (!field.DoesCheckerOnFieldCanBit(enemy) && field.DoesCheckerOnFieldCanBit(this))
+            {
+                field = new Field(copy);
+                return true;
+            }
+            field = new Field(copy);
+            return false;
+        }
+        private bool IsPossibleToCreateDanger(Game game)
+        {
+            User enemy = GetEnemy(game.Users);
+
+            for (int i = 0; i < game.Field.Map.GetLength(0); i++)
+            {
+                for (int j = 0; j < game.Field.Map.GetLength(1); j++)
+                {
+                    if (game.Field.Map[i, j].Type == this.TypeDef ||
+                        game.Field.Map[i, j].Type == this.TypeQ)
+                    {
+                        game.Field.CollectAllPossibleStepsToMoveCheck(new Point(i, j), this);
+                        Point startPoint = new Point(i, j);
+                        Field copyField = new Field(game.Field);
+                        foreach (Point endPoint in this.CordsOfEmptyCells)
+                            if (IsPossible(startPoint, endPoint, game.Field, copyField, enemy)) return true;
+                        
+                    }
+                }
+            }
+            return false;
+        }
+        private (Point, Point) GetPointForDanger(Game game)
+        {
+            User enemy = GetEnemy(game.Users);
+
+            for (int i = 0; i < game.Field.Map.GetLength(0); i++)
+            {
+                for (int j = 0; j < game.Field.Map.GetLength(1); j++)
+                {
+                    if (game.Field.Map[i, j].Type == this.TypeDef ||
+                        game.Field.Map[i, j].Type == this.TypeQ)
+                    {
+                        game.Field.CollectAllPossibleStepsToMoveCheck(new Point(i, j), this);
+                        Point startPoint = new Point(i, j);
+                        Field copyField = new Field(game.Field);
+                        foreach (Point endPoint in this.CordsOfEmptyCells)
+                        {
+                            if (IsPossible(startPoint, endPoint, game.Field, copyField, enemy)) return (startPoint, endPoint);
+                        }
+                    }
+                }
+            }
+            return (null, null);
+        }
         // careful step with danger for enemy
 
         // exchanges
+
         // exchanges
 
         // just careful step
