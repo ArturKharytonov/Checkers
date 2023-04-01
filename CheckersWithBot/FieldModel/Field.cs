@@ -42,7 +42,6 @@ namespace CheckersWithBot.FieldModel
                 }
             }
         }
-
         public Field(Field field)
         {
             Map = new Cell[8, 8];
@@ -54,6 +53,7 @@ namespace CheckersWithBot.FieldModel
                 }
             }
         }
+
         public int CountOfCheckersOnBoard(User user)
         {
             int count = 0;
@@ -216,7 +216,6 @@ namespace CheckersWithBot.FieldModel
             }
             return false;
         }
-
         public bool DoesCurrentCheckerCanBitAnyCheck(Cell cell)
         {
             CellType enemyChecker;
