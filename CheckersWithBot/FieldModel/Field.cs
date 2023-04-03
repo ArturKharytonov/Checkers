@@ -204,7 +204,7 @@ namespace CheckersWithBot.FieldModel
         }
         // FIELD
 
-        public bool DoesCheckerOnFieldCanBit(User user)
+        public bool DoesCheckerOnFieldCanBeat(User user)
         {
             for (int i = 0; i < Map.GetLength(0); i++)
             {

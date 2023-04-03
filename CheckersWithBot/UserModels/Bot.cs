@@ -13,7 +13,7 @@ namespace CheckersWithBot.UserModels
             Name = name;
             CordsOfEmptyCells = new List<Point>(); // for one checker(for printing a field)
             UserAbleToBit = new Dictionary<Point, List<Point>>();
-            DoesBitSmbBefore = false;
+            DoesBeatSmbBefore = false;
         }
 
         private User GetEnemy(List<User> users)
@@ -47,7 +47,7 @@ namespace CheckersWithBot.UserModels
         private void Moving(Point startPoint, Point endPoint, Field field)
         {
             Point enemyChecker =
-                field.GetEnemyPoint(startPoint, endPoint); // bug will be here if bot will beat by queen
+                field.GetEnemyPoint(startPoint, endPoint);
 
             field.Map[enemyChecker.CordX, enemyChecker.CordY].Type = CellType.Empty;
 
@@ -57,14 +57,14 @@ namespace CheckersWithBot.UserModels
         public void BotStep(Game game, int indexOfPlayer)
         {
             this.CordsOfEmptyCells = new List<Point>();
-            if (game.Field.DoesCheckerOnFieldCanBit(this)) // якщо бот може бити
+            if (game.Field.DoesCheckerOnFieldCanBeat(this)) // якщо бот може бити
             {
-                DoesBitSmbBefore = true;
+                DoesBeatSmbBefore = true;
                 this.UserAbleToBit = game.Field.CollectDictionary(this);
 
                 if (GetCountOfEmptyCells(game.Field) > 1) // якщо варіантів декілька - знайти найбільш оптимальний
                 {
-                    (Point, Point) bestMove = CheckEveryPossibleStepToBit(game);
+                    (Point, Point) bestMove = CheckEveryPossibleStepToBeat(game);
                     Moving(bestMove.Item1, bestMove.Item2, game.Field);
                 }
                 else // якщо варіант один
@@ -77,7 +77,7 @@ namespace CheckersWithBot.UserModels
 
             else
             {
-                DoesBitSmbBefore = false;
+                DoesBeatSmbBefore = false;
                 if (false) // якшо опонент може побити шашку бота CanAnotherPlayerBeatChecker(game)
                 {
                     List<Point> allCheckers = new List<Point>();
@@ -99,7 +99,7 @@ namespace CheckersWithBot.UserModels
                             carefulStepWithDanger.Item2 != null)
                             game.Field.MoveCheck(carefulStepWithDanger.Item1, carefulStepWithDanger.Item2);
                     }
-                    else if (false) // розміни
+                    else if (DoesItPossibleToCreateExchange(game)) // розміни (In process)
                     {
 
                     }
@@ -114,12 +114,12 @@ namespace CheckersWithBot.UserModels
         }
 
         // beating "DONE"
-        private (Point, Point) CheckEveryPossibleStepToBit(Game game) // find best move
+        private (Point, Point) CheckEveryPossibleStepToBeat(Game game) // find best move
         {
             //need to collect route for another player, and then compare routes and find best move
             List<Route> routes = new List<Route>();
             List<Point> points = new List<Point>();
-
+            int stopped = 0;
             Field copyField = new Field(game.Field);
 
             for (int i = 0; i < copyField.Map.GetLength(0); i++)
@@ -135,19 +135,20 @@ namespace CheckersWithBot.UserModels
                             {
                                 Point startPoint = new Point(i, j);
                                 routes.Add(new Route(new List<Point>() { startPoint }));
-                                CollectAllPossibleMoves(routes, startPoint, game, copyField); // collected routes for bot
+                                CollectAllPossibleMoves(routes, startPoint, game, copyField, ref stopped); // collected routes for bot
                             }
                         }
                     }
                 }
             }
             CalculateValuesOfRoutes(routes, game.Field, copyField); // for bot // maybe add checking if bot won if yes step all and return Point to get final step
-            Dictionary<Point, List<Route>> consequences = CollectRoutsForEnemy(routes, game, copyField);
+            game.Field = new Field(copyField);
+            Dictionary<Point, List<Route>> consequences = CollectDictionaryOfRoutes(routes, game, copyField);
 
             (Point, Point) bestPoints = CompareAndFindBestPoints(routes, consequences);
             return (bestPoints.Item1, bestPoints.Item2);
         }
-        private Dictionary<Point, List<Route>> CollectRoutsForEnemy(List<Route> botRoutes, Game game, Field copy) // bug: In process
+        private Dictionary<Point, List<Route>> CollectDictionaryOfRoutes(List<Route> botRoutes, Game game, Field copy)
         {
             Dictionary<Point, List<Route>> consequences = new Dictionary<Point, List<Route>>();
             User enemy = GetEnemy(game.Users);
@@ -171,14 +172,13 @@ namespace CheckersWithBot.UserModels
                     CalculateValuesOfRoutes(enemyRoutes, game.Field, copy);
                     consequences.Add(botRoutes[i].Path[botRoutes[i].Path.Count - 1], enemyRoutes);
                 }
-
                 game.Field = new Field(copy);
             }
             return consequences;
         }
-        private void CollectAllPossibleMoves(List<Route> routes, Point startPoint, Game game, Field copyField)
+        private void CollectAllPossibleMoves(List<Route> routes, Point startPoint, Game game, Field copyField, ref int whereStopped)
         {
-            for (int k = 0; k < routes.Count; k++)
+            for (int k = whereStopped; k < routes.Count; k++)
             {
                 do
                 {
@@ -192,6 +192,7 @@ namespace CheckersWithBot.UserModels
                     {
                         Moving(startPoint, emptyCells[0], game.Field);
                         startPoint = emptyCells[0];
+                        routes[k].Path.Add(startPoint);
 
                         for (int l = 1; l < emptyCells.Count; l++)
                         {
@@ -203,10 +204,13 @@ namespace CheckersWithBot.UserModels
                     {
                         Moving(startPoint, emptyCells[0], game.Field);
                         startPoint = emptyCells[0];
+                        routes[k].Path.Add(startPoint);
                     }
                 } while (game.Field.DoesCurrentCheckerCanBitAnyCheck(game.Field.Map[startPoint.CordX, startPoint.CordY]));
                 game.Field = new Field(copyField);
             }
+
+            whereStopped = routes.Count;
         }
         private bool DoesValueExistInRout(List<Point> values, Point checkValue)
         {
@@ -236,7 +240,6 @@ namespace CheckersWithBot.UserModels
                         Moving(startPoint, endPoint, field);
                     }
                 }
-
                 field = new Field(copy);
             }
         }
@@ -244,6 +247,7 @@ namespace CheckersWithBot.UserModels
         {
             List<Route> enemyRoutes = new List<Route>();
             List<Point> points = new List<Point>();
+            int stopped = 0;
             for (int i = 0; i < game.Field.Map.GetLength(0); i++)
             {
                 for (int j = 0; j < copyField.Map.GetLength(1); j++)
@@ -257,7 +261,7 @@ namespace CheckersWithBot.UserModels
                             {
                                 Point startPoint = new Point(i, j);
                                 enemyRoutes.Add(new Route(new List<Point>() { startPoint }));
-                                CollectAllPossibleMoves(enemyRoutes, startPoint, game, copyField); // collected routes for bot
+                                CollectAllPossibleMoves(enemyRoutes, startPoint, game, copyField, ref stopped); // collected routes for bot
                             }
                         }
                     }
@@ -324,14 +328,14 @@ namespace CheckersWithBot.UserModels
         } // used just for situation when bot have 1 possible attack
         // beating
 
-        
+
         // protecting of bots' checkers!!! (IN PROCESS)
         // is bots' checker under danger
         private bool CanAnotherPlayerBeatChecker(Game game)
         {
             User enemy = GetEnemy(game.Users);
             
-            if (game.Field.DoesCheckerOnFieldCanBit(enemy)) return true;
+            if (game.Field.DoesCheckerOnFieldCanBeat(enemy)) return true;
 
             return false;
         }
@@ -410,11 +414,11 @@ namespace CheckersWithBot.UserModels
         // is it possible to get a queen
 
 
-        // careful step with danger for enemy "DONE"
+        // careful step with danger for enemy "A little fix"
         private bool IsPossible(Point startPoint, Point endPoint, Field field, User enemy)
         {
             field.MoveCheck(startPoint, endPoint);
-            if (!field.DoesCheckerOnFieldCanBit(enemy) && field.DoesCheckerOnFieldCanBit(this)) return true;
+            if (!field.DoesCheckerOnFieldCanBeat(enemy) && field.DoesCheckerOnFieldCanBeat(this)) return true;
             // bug if bot came from block when enemy can bit his checker this "if" won't work, ->
             // bug: maybe i need ref here few bool variables or create method can enemy beat any checker besides these which bot declined protecting
 
@@ -487,7 +491,12 @@ namespace CheckersWithBot.UserModels
         public bool DoesItPossibleToCreateExchange(Game game)
         {
             User enemy = GetEnemy(game.Users);
+            List<Route> routesOfEnemy = new List<Route>();
 
+            int countOfBotCheckers = game.Field.CountOfCheckersOnBoard(this);
+            int countOfEnemyCheckers = game.Field.CountOfCheckersOnBoard(enemy);
+
+            Field copy = new Field(game.Field);
             for (int i = 0; i < game.Field.Map.GetLength(0); i++)
             {
                 for (int j = 0; j < game.Field.Map.GetLength(1); j++)
@@ -496,28 +505,34 @@ namespace CheckersWithBot.UserModels
                         game.Field.Map[i, j].Type == this.TypeQ)
                     {
                         Point startPoint = new Point(i, j);
-                        List<Point> collectEmptyCells = game.Field.CollectEmptyCells(game.Field.Map[i, j]);
-                        if (collectEmptyCells.Count > 0)
+                        game.Field.CollectAllPossibleStepsToMoveCheck(new Point(i, j), this);
+                        if (this.CordsOfEmptyCells.Count > 0)
                         {
-                            foreach (Point endPoint in collectEmptyCells)
+                            foreach (Point endPoint in this.CordsOfEmptyCells)
                             {
                                 Moving(startPoint, endPoint, game.Field);
+                                if (game.Field.DoesCheckerOnFieldCanBeat(enemy))
+                                {
+                                    enemy.UserAbleToBit = game.Field.CollectDictionary(enemy);
+                                }
                                 // here i need logic:
-                                // 1. collect count of checkers that enemy can bit
-                                // 2. and after that collect count of checkers that bot can beat
-                                // find best checkers to move
-                                // maybe i can use function "CheckEveryPossibleStepToBit"
+                                // collect list of enemy routes for every bot checker after step and then to every route of enemy create list of bots' routes
 
+                                game.Field = new Field(copy);
                             }
                         }
+
+                        this.CordsOfEmptyCells = new List<Point>();
                     }
                 }
             }
             return false;
         }
+        
+
         // exchanges
 
-        // just careful step "DONE"
+        // just careful step "A little fix"
         private (Point, Point) CarefulStep(Game game) //bug: as well as in careful step with danger for enemy
         {
             User enemy = GetEnemy(game.Users);
@@ -534,7 +549,7 @@ namespace CheckersWithBot.UserModels
                         foreach (Point endPoint in this.CordsOfEmptyCells)
                         {
                             game.Field.MoveCheck(starPoint, endPoint);
-                            if (!game.Field.DoesCheckerOnFieldCanBit(enemy)) 
+                            if (!game.Field.DoesCheckerOnFieldCanBeat(enemy)) 
                             {
                                 game.Field = new Field(copyField);
                                 return (starPoint, endPoint);

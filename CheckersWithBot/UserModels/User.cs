@@ -16,7 +16,7 @@ namespace CheckersWithBot.UserModels
         public Dictionary<Point, List<Point>> UserAbleToBit { get; set; }
         //public List<Point> CordsOfCheckersThatCanBit { get; set; }
         //public List<Point> HisChecksThatAbleToBit { get; set; }
-        public bool DoesBitSmbBefore { get; set; }
+        public bool DoesBeatSmbBefore { get; set; }
 
         public User(string name)
         {

@@ -88,9 +88,9 @@ namespace CheckersWithBot
                                 case MenuInGame.DoStep:
                                     {
                                         Console.WriteLine("Choose your checker: ");
-                                        if (Field.DoesCheckerOnFieldCanBit(Users[i])) // якщо гравецб може побити шашку
+                                        if (Field.DoesCheckerOnFieldCanBeat(Users[i])) // якщо гравецб може побити шашку
                                         {
-                                            Users[i].DoesBitSmbBefore = true;
+                                            Users[i].DoesBeatSmbBefore = true;
                                             Users[i].UserAbleToBit = Field.CollectDictionary(Users[i]);
                                             do
                                             {
@@ -157,7 +157,7 @@ namespace CheckersWithBot
 
                                         else 
                                         {
-                                            Users[i].DoesBitSmbBefore = false;
+                                            Users[i].DoesBeatSmbBefore = false;
                                             do
                                             {
                                                 InputOfCords(out cordX, out cordY);
@@ -258,7 +258,7 @@ namespace CheckersWithBot
                             isEnd = true;
                             break;
                         } // if lost second Player
-                        if (Field.DoesCheckerOnFieldCanBit(Users[i]) && Users[i].DoesBitSmbBefore) i--;
+                        if (Field.DoesCheckerOnFieldCanBeat(Users[i]) && Users[i].DoesBeatSmbBefore) i--;
                     }
                 }
             } while (!isEnd);

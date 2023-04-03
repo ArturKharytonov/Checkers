@@ -15,7 +15,7 @@ namespace CheckersWithBot.UserModels
             //CordsOfCheckersThatCanBit = new List<Point>();
             //HisChecksThatAbleToBit = new List<Point>();
             UserAbleToBit = new Dictionary<Point, List<Point>>();
-            DoesBitSmbBefore = false;
+            DoesBeatSmbBefore = false;
             
         }
     }
