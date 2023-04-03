@@ -16,6 +16,7 @@ namespace CheckersWithBot.UserModels
             //HisChecksThatAbleToBit = new List<Point>();
             UserAbleToBit = new Dictionary<Point, List<Point>>();
             DoesBitSmbBefore = false;
+            
         }
     }
 }

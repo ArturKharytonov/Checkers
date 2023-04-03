@@ -502,16 +502,22 @@ namespace CheckersWithBot.FieldModel
 
                 for (int i = points.CordX; i < Map.GetLength(0); i++, temp++) // перевірка вниз
                 {
-                    
+
                     if ((i + 1 >= 0 && i + 1 < Map.GetLength(0)) &&
                         (j + temp + 1 >= 0 && j + temp + 1 < Map.GetLength(1)) &&
-                        Map[i + 1, j + temp + 1].Type == CellType.Empty && !blockMoveRight) user.CordsOfEmptyCells.Add(new Point(i + 1, j + temp + 1));
+                        Map[i + 1, j + temp + 1].Type == CellType.Empty && !blockMoveRight)
+                    {
+                        user.CordsOfEmptyCells.Add(new Point(i + 1, j + temp + 1));
+                    }
                     else blockMoveRight = true;
 
                     if ((i + 1 >= 0 && i + 1 < Map.GetLength(0)) &&
                         (j - temp - 1 >= 0 && j - temp - 1 < Map.GetLength(1)) &&
                         Map[i + 1, j - temp - 1].Type == CellType.Empty && !blockMoveLeft)
+                    {
                         user.CordsOfEmptyCells.Add(new Point(i + 1, j - temp - 1));
+                    }
+                        
                     else blockMoveLeft = true;
                 }
 
@@ -523,14 +529,18 @@ namespace CheckersWithBot.FieldModel
                 {
                     if ((i - 1 >= 0 && i - 1 < Map.GetLength(0)) &&
                         (j + temp + 1 >= 0 && j + temp + 1 < Map.GetLength(1)) &&
-                        Map[i - 1, j + temp + 1].Type == CellType.Empty && !blockMoveRight) 
+                        Map[i - 1, j + temp + 1].Type == CellType.Empty && !blockMoveRight)
+                    {
                         user.CordsOfEmptyCells.Add(new Point(i - 1, j + temp + 1));
+                    }
                     else blockMoveRight = true;
 
                     if ((i - 1 >= 0 && i - 1 < Map.GetLength(0)) &&
-                             (j - temp - 1 >= 0 && j - temp - 1 < Map.GetLength(1)) &&
-                             Map[i - 1, j - temp - 1].Type == CellType.Empty && !blockMoveLeft) 
+                        (j - temp - 1 >= 0 && j - temp - 1 < Map.GetLength(1)) &&
+                        Map[i - 1, j - temp - 1].Type == CellType.Empty && !blockMoveLeft)
+                    {
                         user.CordsOfEmptyCells.Add(new Point(i - 1, j - temp - 1));
+                    }
                     else blockMoveLeft = true;
                 }
             }
@@ -674,6 +684,7 @@ namespace CheckersWithBot.FieldModel
             }
             return null;
         }
+
         public bool CanAnotherPlayerBeatOurChecker(Point point, User user)
         {
             for (int i = 0; i < Map.GetLength(0); i++)

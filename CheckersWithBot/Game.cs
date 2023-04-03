@@ -90,7 +90,7 @@ namespace CheckersWithBot
                                         Console.WriteLine("Choose your checker: ");
                                         if (Field.DoesCheckerOnFieldCanBit(Users[i])) // якщо гравецб може побити шашку
                                         {
-                                            
+                                            Users[i].DoesBitSmbBefore = true;
                                             Users[i].UserAbleToBit = Field.CollectDictionary(Users[i]);
                                             do
                                             {
@@ -157,6 +157,7 @@ namespace CheckersWithBot
 
                                         else 
                                         {
+                                            Users[i].DoesBitSmbBefore = false;
                                             do
                                             {
                                                 InputOfCords(out cordX, out cordY);
@@ -214,7 +215,6 @@ namespace CheckersWithBot
                                     {
                                         Users.RemoveAt(i);
                                         isEnd = true;
-                                        
                                     }
                                     break;
                                 case MenuInGame.OfferDraw:
@@ -236,11 +236,12 @@ namespace CheckersWithBot
 
                     else
                     {
-                        ((Bot)Users[i]).BotStep(this, i); 
+                        ((Bot)Users[i]).BotStep(this, i);
+                        Users[i].CordsOfEmptyCells = new List<Point>();
                     } //BOT LOGIC
 
                     Console.ReadLine();
-                    Console.Clear();
+                    //Console.Clear();
 
                     if (Users.Count == 2)
                     {
@@ -257,8 +258,7 @@ namespace CheckersWithBot
                             isEnd = true;
                             break;
                         } // if lost second Player
-
-                        if (Field.DoesCheckerOnFieldCanBit(Users[i])) i--;
+                        if (Field.DoesCheckerOnFieldCanBit(Users[i]) && Users[i].DoesBitSmbBefore) i--;
                     }
                 }
             } while (!isEnd);
