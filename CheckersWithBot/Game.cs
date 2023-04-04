@@ -240,11 +240,15 @@ namespace CheckersWithBot
                         Users[i].CordsOfEmptyCells = new List<Point>();
                     } //BOT LOGIC
 
+                    
+                    
                     Console.ReadLine();
                     //Console.Clear();
 
                     if (Users.Count == 2)
                     {
+                        Users[i].CordsOfEmptyCells = new List<Point>();
+
                         IfGotQueen(i); // does player got queen
                         if (Field.CountOfCheckersOnBoard(Users[0]) == 0 && Users.Count == 2)
                         {
