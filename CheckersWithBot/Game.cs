@@ -9,11 +9,13 @@ using CheckersWithBot.UserModels;
 
 namespace CheckersWithBot
 {
+    // bug CollectEmptyCells fix collecting for queen
+
     public class Game
     {
         public Field Field { get; set; }
         public List<User> Users { get; set; }
-        private int _toGetNumber = 65;
+        private const int _toGetNumber = 65;
         public Game(Field field, List<User> users)
         {
             Field = field;
@@ -70,6 +72,7 @@ namespace CheckersWithBot
                 for (int i = 0; i < Users.Count; i++)
                 {
                     Field.PrintField(Users[i]);
+                    Console.WriteLine($"{i + 1} Player");
                     if (Users[i].GetType() == typeof(Player))
                     {
                         Console.WriteLine($"{Users[i].Name} your turn.");
@@ -237,12 +240,11 @@ namespace CheckersWithBot
                     else
                     {
                         ((Bot)Users[i]).BotStep(this, i);
-                        Users[i].CordsOfEmptyCells = new List<Point>();
+                        if(Users.Count == 2) Users[i].CordsOfEmptyCells = new List<Point>();
                     } //BOT LOGIC
 
-                    
-                    
-                    Console.ReadLine();
+
+                    //Console.ReadLine();
                     //Console.Clear();
 
                     if (Users.Count == 2)
@@ -262,11 +264,14 @@ namespace CheckersWithBot
                             isEnd = true;
                             break;
                         } // if lost second Player
+                        if(Field.CountOfCheckersOnBoard(Users[0]) == Field.CountOfCheckersOnBoard(Users[1]) && Field.CountOfCheckersOnBoard(Users[0]) == 1) isEnd = true;
                         if (Field.DoesCheckerOnFieldCanBeat(Users[i]) && Users[i].DoesBeatSmbBefore) i--;
                     }
+                    else isEnd = true;
                 }
             } while (!isEnd);
-
+            Field.PrintField(Users[0]);
+            Console.ReadLine();
             if (Users.Count == 2)
                 Console.WriteLine($"DRAW!");
 

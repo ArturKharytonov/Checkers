@@ -8,6 +8,7 @@ namespace CheckersWithBot.UserModels
 {
     public class Bot : User
     {
+        private Random _random = new Random();
         public Bot(string name) : base(name)
         {
             Name = name;
@@ -82,8 +83,16 @@ namespace CheckersWithBot.UserModels
 
                 if (GetCountOfEmptyCells(game.Field) > 1) // якщо варіантів декілька - знайти найбільш оптимальний
                 {
-                    (Point, Point) bestMove = CheckEveryPossibleStepToBeat(game);
-                    Moving(bestMove.Item1, bestMove.Item2, game.Field);
+                    try
+                    {
+                        (Point, Point) bestMove = CheckEveryPossibleStepToBeat(game); // bug here(sometimes in "moving" and "MoveAllCheckerToCheckCorrectField"), have already fixed
+                        Moving(bestMove.Item1, bestMove.Item2, game.Field);
+                    }
+                    catch (NullReferenceException e)
+                    {
+                        (Point, Point) bestMove = CheckEveryPossibleStepToBeat(game);
+                        Moving(bestMove.Item1, bestMove.Item2, game.Field);
+                    }
                 }
                 else // якщо варіант один
                 {
@@ -103,7 +112,7 @@ namespace CheckersWithBot.UserModels
                 }
                 else
                 {
-                    (Point, Point) forCarefulStep = CarefulStep(game);
+                    List<(Point, Point)> forCarefulStep = CarefulStep(game);
                     this.CordsOfEmptyCells = new List<Point>();
                     (Point, Point) makeExchange = DoesItPossibleToCreateExchange(game);
                     this.CordsOfEmptyCells = new List<Point>();
@@ -124,25 +133,35 @@ namespace CheckersWithBot.UserModels
                     else if (makeExchange.Item1 != null && makeExchange.Item2 != null) // розміни (In process)
                         game.Field.MoveCheck(makeExchange.Item1, makeExchange.Item2);
                     
-                    else if (forCarefulStep.Item1 != null && // пошук найбільш безпечного ходу який не зробить ніякої шкоди
-                             forCarefulStep.Item2 != null)
-                        game.Field.MoveCheck(forCarefulStep.Item1, forCarefulStep.Item2);
+                    else if (forCarefulStep.Count > 0)
+                    {
+                        int random = _random.Next(0, forCarefulStep.Count);
+                        game.Field.MoveCheck(forCarefulStep[random].Item1, forCarefulStep[random].Item2);
+                    }
 
                     else if (true)
                         DoRandomStep(game);
                 }
             }
-            //this.CordsOfEmptyCells = new List<Point>();
         }
 
         // beating "DONE"
+        private void MoveAllCheckerToCheckCorrectField(Route route, Field field)
+        {
+            for (int i = 0; i < route.Path.Count; i++)
+            {
+                if (i + 1 < route.Path.Count)
+                    Moving(route.Path[i], route.Path[i + 1], field);
+            }
+        } // BUG HERE
         private (Point, Point) CheckEveryPossibleStepToBeat(Game game) // find best move
         {
-            //need to collect route for another player, and then compare routes and find best move
             List<Route> routes = new List<Route>();
             List<Point> points = new List<Point>();
             int stopped = 0;
             Field copyField = new Field(game.Field);
+            int countOfBotCheckers = game.Field.CountOfCheckersOnBoard(this);
+            int countOfEnemyCheckers = game.Field.CountOfCheckersOnBoard(GetEnemy(game.Users));
 
             for (int i = 0; i < copyField.Map.GetLength(0); i++)
             {
@@ -165,9 +184,9 @@ namespace CheckersWithBot.UserModels
             }
             CalculateValuesOfRoutes(routes, game.Field, copyField); // for bot // maybe add checking if bot won if yes step all and return Point to get final step
             game.Field = new Field(copyField);
-            Dictionary<Point, List<Route>> consequences = CollectDictionaryOfRoutes(routes, game, copyField);
+            Dictionary<Point, List<Route>> consequences = CollectDictionaryOfRoutes(routes, game, copyField); // bug in collect dictionary
 
-            (Point, Point) bestPoints = CompareAndFindBestPoints(routes, consequences);
+            (Point, Point) bestPoints = CompareAndFindBestPoints(routes, consequences, countOfBotCheckers, countOfEnemyCheckers);
             return (bestPoints.Item1, bestPoints.Item2);
         }
         private Dictionary<Point, List<Route>> CollectDictionaryOfRoutes(List<Route> botRoutes, Game game, Field copy)
@@ -185,13 +204,13 @@ namespace CheckersWithBot.UserModels
                         Moving(botRoutes[i].Path[j], botRoutes[i].Path[j + 1], game.Field);
                     }
                 }
-
+                Field secondCopy = new Field(game.Field);
                 // collect all cells which can bit bot checkers
                 enemy.UserAbleToBit = game.Field.CollectDictionary(enemy);
                 if (enemy.UserAbleToBit.Count > 0)
                 {
-                    enemyRoutes = CollectRoutesForEnemy(enemy, game, copy);
-                    CalculateValuesOfRoutes(enemyRoutes, game.Field, copy);
+                    enemyRoutes = CollectRoutesForEnemy(enemy, game, secondCopy);
+                    CalculateValuesOfRoutes(enemyRoutes, game.Field, secondCopy);
                     if (consequences.ContainsKey(botRoutes[i].Path[botRoutes[i].Path.Count - 1]))
                     {
                         List<Route> routes = new List<Route>();
@@ -202,23 +221,31 @@ namespace CheckersWithBot.UserModels
                         consequences.Add(botRoutes[i].Path[botRoutes[i].Path.Count - 1], routes);
                     }
                     else consequences.Add(botRoutes[i].Path[botRoutes[i].Path.Count - 1], enemyRoutes);
-
+                    //game.Field = new Field(copy);
                 }
                 game.Field = new Field(copy);
             }
             return consequences;
         }
-        private void CollectAllPossibleMoves(List<Route> routes, Point startPoint, Game game, Field copyField, ref int whereStopped)
+
+        private void CollectAllPossibleMoves(List<Route> routes, Point startPoint, Game game, Field copyField, ref int whereStopped, bool needICorrectFormField = false)
         {
             for (int k = whereStopped; k < routes.Count; k++)
             {
+                startPoint = routes[k].Path[routes[k].Path.Count - 1];
                 do
                 {
                     //if (!DoesValueExistInRout(routes[k].Path, startPoint))
                     //    routes[k].Path.Add(startPoint);
+
+                    if (needICorrectFormField)
+                    {
+                        MoveAllCheckerToCheckCorrectField(routes[k], game.Field);
+                        needICorrectFormField = false;
+                    }
                     
-                    List<Point> emptyCells = game.Field.CollectEmptyCells(game.Field.Map[startPoint.CordX,
-                        startPoint.CordY]);
+                    List<Point> emptyCells = game.Field.CollectEmptyCells(game.Field.Map[routes[k].Path[routes[k].Path.Count - 1].CordX,
+                        routes[k].Path[routes[k].Path.Count - 1].CordY]);
 
                     if (emptyCells.Count > 1)
                     {
@@ -227,7 +254,7 @@ namespace CheckersWithBot.UserModels
 
                         for (int l = 1; l < emptyCells.Count; l++)
                         {
-                            routes.Add(new Route(routes[k])); // bug maybe here!
+                            routes.Add(new Route(routes[k]));
                             routes[routes.Count - 1].Path.Add(emptyCells[l]);
                         }
                         routes[k].Path.Add(startPoint);
@@ -238,21 +265,13 @@ namespace CheckersWithBot.UserModels
                         startPoint = emptyCells[0];
                         routes[k].Path.Add(startPoint);
                     }
+                    else break;
+                    
                 } while (game.Field.DoesCurrentCheckerCanBitAnyCheck(game.Field.Map[startPoint.CordX, startPoint.CordY]));
+                needICorrectFormField = true;
                 game.Field = new Field(copyField);
             }
-
             whereStopped = routes.Count;
-        }
-        private bool DoesValueExistInRout(List<Point> values, Point checkValue)
-        {
-            foreach (Point value in values)
-            {
-                if (value.CordX == checkValue.CordX &&
-                    value.CordY == checkValue.CordY) return true;
-            }
-
-            return false;
         }
         private void CalculateValuesOfRoutes(List<Route> routes, Field field, Field copy)
         {
@@ -265,13 +284,17 @@ namespace CheckersWithBot.UserModels
                         Point startPoint = routes[i].Path[j];
                         Point endPoint = routes[i].Path[j + 1];
                         Point enemyChecker = field.GetEnemyPoint(startPoint, endPoint);
-                        if (field.Map[enemyChecker.CordX, enemyChecker.CordY].Type == CellType.CheckerF ||
-                            field.Map[enemyChecker.CordX, enemyChecker.CordY].Type == CellType.CheckerS)
-                            routes[i].Value++;
-                        else if(field.Map[enemyChecker.CordX, enemyChecker.CordY].Type != CellType.Empty)
-                            routes[i].Value += 3;
-                        Moving(startPoint, endPoint, field);
+                        if (enemyChecker != null)
+                        {
+                            if (field.Map[enemyChecker.CordX, enemyChecker.CordY].Type == CellType.CheckerF ||
+                                field.Map[enemyChecker.CordX, enemyChecker.CordY].Type == CellType.CheckerS)
+                                routes[i].Value++;
+                            else if (field.Map[enemyChecker.CordX, enemyChecker.CordY].Type != CellType.Empty)
+                                routes[i].Value += 3;
+                            Moving(startPoint, endPoint, field);
+                        }
                     }
+                        
                 }
                 field = new Field(copy);
             }
@@ -303,14 +326,14 @@ namespace CheckersWithBot.UserModels
 
             return enemyRoutes;
         }
-        private (Point, Point) CompareAndFindBestPoints(List<Route> botRoutes, Dictionary<Point, List<Route>> enemyRoutes)
+        private (Point, Point) CompareAndFindBestPoints(List<Route> botRoutes, Dictionary<Point, List<Route>> enemyRoutes, int countOfBotCheckers, int countOfEnemyCheckers)
         {
             List<Route> tempList = new List<Route>();
-            Point bestStartPoint = new Point(-1, -1);
-            Point bestEndPoint = new Point(-1, -1);
-            int bestvalueOfBotRout = 0;
+            Point bestStartPoint = botRoutes[0].Path[0];
+            Point bestEndPoint = botRoutes[0].Path[1];
+            int bestvalueOfBotRout = botRoutes[0].Value;
 
-            for (int i = 0; i < botRoutes.Count; i++)
+            for (int i = 1; i < botRoutes.Count; i++)
             {
                 int valueOfBotRoute = botRoutes[i].Value;
                 if (enemyRoutes.TryGetValue(botRoutes[i].Path[botRoutes[i].Path.Count - 1], out tempList))
@@ -326,6 +349,13 @@ namespace CheckersWithBot.UserModels
                         }
                     }
                     if (valueOfBotRoute - maxValue > bestvalueOfBotRout)
+                    {
+                        bestvalueOfBotRout = valueOfBotRoute - maxValue;
+                        bestStartPoint = botRoutes[i].Path[0];
+                        bestEndPoint = botRoutes[i].Path[1];
+                    }
+                    else if (valueOfBotRoute - maxValue >= bestvalueOfBotRout &&
+                             countOfBotCheckers >= countOfEnemyCheckers)
                     {
                         bestvalueOfBotRout = valueOfBotRoute - maxValue;
                         bestStartPoint = botRoutes[i].Path[0];
@@ -359,7 +389,6 @@ namespace CheckersWithBot.UserModels
             return (null, null);
         } // used just for situation when bot have 1 possible attack
         // beating
-
 
         // protecting of bots' checkers!!! (IN PROCESS)
         // is bots' checker under danger
@@ -430,15 +459,13 @@ namespace CheckersWithBot.UserModels
                     {
                         if (i + 1 < field.Map.GetLength(1) &&
                             field.Map[0, i + 1].Type == CellType.Empty)
-                            Moving(new Point(0, i),
-                                new Point(0, i + 1),
-                                field);
+                            field.MoveCheck(new Point(1, i),
+                                new Point(0, i + 1));
 
                         else if (i - 1 >= 0 &&
                                  field.Map[0, i - 1].Type == CellType.Empty)
-                            Moving(new Point(0, i),
-                                new Point(0, i - 1),
-                                field);
+                            field.MoveCheck(new Point(1, i),
+                                new Point(0, i - 1));
                     }
                 }
             }
@@ -518,7 +545,7 @@ namespace CheckersWithBot.UserModels
         // careful step with danger for enemy
 
 
-        // exchanges (IN PROCESS) BUG!!!
+        // exchanges (IN PROCESS)
         private (Point, Point) DoesItPossibleToCreateExchange(Game game)
         {
             User enemy = GetEnemy(game.Users);
@@ -551,7 +578,6 @@ namespace CheckersWithBot.UserModels
                                 {
                                     enemy.UserAbleToBit = game.Field.CollectDictionary(enemy);
                                     List<Route> tempList = CollectRoutes(enemy, game, secondCopy);
-
                                     if (tempList.Count > 0)
                                     {
                                         tempEndPoints.Add(endPoint);
@@ -579,7 +605,7 @@ namespace CheckersWithBot.UserModels
                 //compare botRoutes and routesOfEnemy variables
             }
             return (null, null);
-        } // fix logic with collecting dictionary for bot and do not add in list or dictionary same routes
+        }
         private List<Route> CollectRoutes(User user, Game game, Field copy)
         {
             List<Route> routes = CollectRoutesForEnemy(user, game, copy);
@@ -607,6 +633,7 @@ namespace CheckersWithBot.UserModels
                                 Field secondCopyField = new Field(game.Field);
                                 botList.Add(GetDictionaryForBot(routesOfEnemy[indexOfEnemyRoutes], game, secondCopyField)); //logic of collecting dictionary
                                 indexOfEnemyRoutes++;
+                                game.Field = new Field(copy);
                             }
                         }
                     }
@@ -652,10 +679,6 @@ namespace CheckersWithBot.UserModels
                 {
                     if (points.TryGetValue(new Point(i, j), out tempListOfEndPoints))
                     {
-                        if (i == 2 && j == 4)
-                        {
-
-                        }
                         foreach (var endPoint in tempListOfEndPoints)
                         {
                             for (int k = 0; k < routesOfEnemy[index].Count; k++)
@@ -695,10 +718,10 @@ namespace CheckersWithBot.UserModels
         } // bug: i have to compare better moves
         // exchanges
 
-
         // just careful step "A little fix"
-        private (Point, Point) CarefulStep(Game game) //bug: as well as in careful step with danger for enemy
+        private List<(Point, Point)> CarefulStep(Game game) //bug: as well as in "isPossible"
         {
+            List<(Point, Point)> list = new List<(Point, Point)> ();
             User enemy = GetEnemy(game.Users);
             for (int i = 0; i < game.Field.Map.GetLength(0); i++)
             {
@@ -716,21 +739,23 @@ namespace CheckersWithBot.UserModels
                             if (!game.Field.DoesCheckerOnFieldCanBeat(enemy)) 
                             {
                                 game.Field = new Field(copyField);
-                                return (starPoint, endPoint);
+                                list.Add((starPoint, endPoint));
+                                
                             }
                             game.Field = new Field(copyField);
-                            this.CordsOfEmptyCells = new List<Point>();
                         }
+                        this.CordsOfEmptyCells = new List<Point>();
                     }
                 }
             }
-            return (null, null);
+            return list;
         }
         // just careful step
 
         // random step "DONE"
         public void DoRandomStep(Game game)
         {
+            List<Point> allPoints = new List<Point>();
             for (int i = 0; i < game.Field.Map.GetLength(0); i++)
             {
                 for (int j = 0; j < game.Field.Map.GetLength(1); j++)
@@ -738,16 +763,37 @@ namespace CheckersWithBot.UserModels
                     if (game.Field.Map[i, j].Type == this.TypeDef ||
                         game.Field.Map[i, j].Type == this.TypeQ)
                     {
-                        List<Point> collectEmptyCells = game.Field.CollectEmptyCells(game.Field.Map[i, j]);
-                        if (collectEmptyCells.Count > 0)
-                        {
-                            game.Field.MoveCheck(new Point(i, j), collectEmptyCells[0]);
-                            return;
-                        }
+                        game.Field.CollectAllPossibleStepsToMoveCheck(new Point(i, j), this);
+                        if (this.CordsOfEmptyCells.Count > 0)
+                            allPoints.Add(new Point(i, j));
+                        this.CordsOfEmptyCells = new List<Point>();
+
                     }
                 }
             }
+
+            if (allPoints.Count > 0)
+            {
+                int whatCord = _random.Next(0, allPoints.Count);
+                game.Field.CollectAllPossibleStepsToMoveCheck(new Point(allPoints[whatCord].CordX, allPoints[whatCord].CordY), this);
+                int emptyCell = _random.Next(0, this.CordsOfEmptyCells.Count);
+                game.Field.MoveCheck(allPoints[whatCord], this.CordsOfEmptyCells[emptyCell]);
+            }
+            else
+                game.Users.Remove(this);
+            
         }
         // random step
     }
 }
+
+//private bool DoesValueExistInRout(List<Point> values, Point checkValue)
+//{
+//    foreach (Point value in values)
+//    {
+//        if (value.CordX == checkValue.CordX &&
+//            value.CordY == checkValue.CordY) return true;
+//    }
+
+//    return false;
+//}
