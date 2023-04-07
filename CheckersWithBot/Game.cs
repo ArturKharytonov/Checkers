@@ -9,18 +9,20 @@ using CheckersWithBot.UserModels;
 
 namespace CheckersWithBot
 {
-    // bug CollectEmptyCells fix collecting for queen
-
+    // 1. Write a logic for protecting a checkers.
+    // 2. Maybe fix logic for exchanges.
     public class Game
     {
         public Field Field { get; set; }
         public List<User> Users { get; set; }
         private const int _toGetNumber = 65;
+        private const int _maxCountStepsWithoutBeating = 15;
         public Game(Field field, List<User> users)
         {
             Field = field;
             Users = users;
         }
+
         public void PrintAllUsers()
         {
             for (int i = 0; i < Users.Count; i++)
@@ -64,14 +66,15 @@ namespace CheckersWithBot
             int cordY = 0;
             bool isEnd = false;
             bool step = true;
-
+            Point checkerWhichPlayerUsed = new Point(-1, -1);
+            int countOfStepsWithoutBeating = 0;
             FillDataForPlayers();
 
+            Field.PrintField(Users[0]);
             do
             {
                 for (int i = 0; i < Users.Count; i++)
                 {
-                    Field.PrintField(Users[i]);
                     Console.WriteLine($"{i + 1} Player");
                     if (Users[i].GetType() == typeof(Player))
                     {
@@ -93,8 +96,13 @@ namespace CheckersWithBot
                                         Console.WriteLine("Choose your checker: ");
                                         if (Field.DoesCheckerOnFieldCanBeat(Users[i])) // якщо гравецб може побити шашку
                                         {
+                                            if (!Users[i].DoesBeatSmbBefore)
+                                                Users[i].UserAbleToBit = Field.CollectDictionary(Users[i]);
+                                            else
+                                                Users[i].UserAbleToBit = Field.CollectDictionaryForOneChecker(Users[i], checkerWhichPlayerUsed);
                                             Users[i].DoesBeatSmbBefore = true;
-                                            Users[i].UserAbleToBit = Field.CollectDictionary(Users[i]);
+                                            countOfStepsWithoutBeating = 0;
+
                                             do
                                             {
                                                 Console.WriteLine("U can bit checker: ");
@@ -140,7 +148,7 @@ namespace CheckersWithBot
                                                                     CellType.Empty;
 
                                                                 Field.MoveCheck(new Point(cordX, cordY), new Point(tempX, tempY));
-
+                                                                checkerWhichPlayerUsed = new Point(tempX, tempY);
                                                                 didUserDoStep = true;
                                                             }
                                                             break;
@@ -239,16 +247,17 @@ namespace CheckersWithBot
 
                     else
                     {
-                        ((Bot)Users[i]).BotStep(this, i);
-                        if(Users.Count == 2) Users[i].CordsOfEmptyCells = new List<Point>();
+                        checkerWhichPlayerUsed = ((Bot)Users[i]).BotStep(this, i, checkerWhichPlayerUsed);
+                        if (checkerWhichPlayerUsed.CordX >= 0) countOfStepsWithoutBeating = 0;
                     } //BOT LOGIC
 
-
+                    
                     //Console.ReadLine();
                     //Console.Clear();
 
                     if (Users.Count == 2)
                     {
+                        Field.PrintField(Users[i]);
                         Users[i].CordsOfEmptyCells = new List<Point>();
 
                         IfGotQueen(i); // does player got queen
@@ -264,17 +273,30 @@ namespace CheckersWithBot
                             isEnd = true;
                             break;
                         } // if lost second Player
+
                         if(Field.CountOfCheckersOnBoard(Users[0]) == Field.CountOfCheckersOnBoard(Users[1]) && Field.CountOfCheckersOnBoard(Users[0]) == 1) isEnd = true;
-                        if (Field.DoesCheckerOnFieldCanBeat(Users[i]) && Users[i].DoesBeatSmbBefore) i--;
+                        
+                        if (checkerWhichPlayerUsed.CordX >= 0 && checkerWhichPlayerUsed.CordY >= 0 &&
+                            Field.DoesCurrentCheckerCanBitAnyCheck(Field.Map[checkerWhichPlayerUsed.CordX, checkerWhichPlayerUsed.CordY]) &&
+                            Users[i].DoesBeatSmbBefore) i--;
+                        else Users[i].DoesBeatSmbBefore = false;
                     }
                     else isEnd = true;
                 }
+
+                countOfStepsWithoutBeating++;
+                if (countOfStepsWithoutBeating == _maxCountStepsWithoutBeating) isEnd = true;
             } while (!isEnd);
+
+
+
+
+
             Field.PrintField(Users[0]);
             Console.ReadLine();
+
             if (Users.Count == 2)
                 Console.WriteLine($"DRAW!");
-
             else 
                 Console.WriteLine($"{Users[0].Name} - WON! HIS COLOR WAS - {Users[0].Color}.");
         }

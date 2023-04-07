@@ -76,6 +76,9 @@ namespace CheckersWithBot.FieldModel
                 if (i % 2 == 0 && j % 2 != 0) Console.BackgroundColor = ConsoleColor.White;
                 else if (i % 2 != 0 && j % 2 == 0) Console.BackgroundColor = ConsoleColor.White;
 
+                if (DoesCordExistInUserListOfEmptyCells(new Point(i, j), user))
+                    Console.BackgroundColor = ConsoleColor.DarkYellow;
+                
                 switch (Map[i, j].Type)
                 {
                     case CellType.CheckerF:
@@ -108,13 +111,10 @@ namespace CheckersWithBot.FieldModel
                         {
                             if (DoesCordExistInUserListOfEmptyCells(new Point(i, j), user))
                             {
-
                                 Console.BackgroundColor = ConsoleColor.DarkRed;
                                 Console.Write("       ");
                                 Console.BackgroundColor = ConsoleColor.Black;
-
                             }
-
                             else Console.Write("       ");
                         }
                         break;
@@ -144,6 +144,9 @@ namespace CheckersWithBot.FieldModel
                     if (i % 2 == 0 && j % 2 != 0) Console.BackgroundColor = ConsoleColor.White;
                     else if(i % 2 != 0 && j % 2 == 0) Console.BackgroundColor = ConsoleColor.White;
 
+                    if (DoesCordExistInUserListOfEmptyCells(new Point(i, j), user))
+                        Console.BackgroundColor = ConsoleColor.DarkYellow;
+                    
                     switch (Map[i, j].Type)
                     {
                         case CellType.CheckerF: 
@@ -176,11 +179,9 @@ namespace CheckersWithBot.FieldModel
                             {
                                 if (DoesCordExistInUserListOfEmptyCells(new Point(i, j), user))
                                 {
-                                    
                                     Console.BackgroundColor = ConsoleColor.DarkRed;
                                     Console.Write("       ");
                                     Console.BackgroundColor = ConsoleColor.Black;
-                                    
                                 }
 
                                 else Console.Write("       ");
@@ -352,7 +353,7 @@ namespace CheckersWithBot.FieldModel
                 }
             }
             return false;
-        } // checking if checker can bit bug maybe for queen also
+        } // checking if checker can bit
         public List<Point> CollectEmptyCells(Cell cell)
         {
             List<Point> emptyCells = new List<Point>();
@@ -515,9 +516,8 @@ namespace CheckersWithBot.FieldModel
                 }
             }
             return emptyCells;
-        } // collecting if checker can bit bug maybe for queen also
-
-        public void CollectAllPossibleStepsToMoveCheck(Point points, User user) // bug maybe for queen also
+        } // collecting if checker can bit
+        public void CollectAllPossibleStepsToMoveCheck(Point points, User user)
         {
             if (Map[points.CordX, points.CordY].Type == CellType.CheckerF)
             {
@@ -636,6 +636,14 @@ namespace CheckersWithBot.FieldModel
             }
             return dict;
         }
+        public Dictionary<Point, List<Point>> CollectDictionaryForOneChecker(User user, Point point)
+        {
+            Dictionary<Point, List<Point>> dict = new Dictionary<Point, List<Point>>();
+            List<Point> cells = CollectEmptyCells(Map[point.CordX, point.CordY]);
+            if(cells.Count > 0)
+                dict.Add(point, cells);
+            return dict;
+        }
         public bool DoesPointExistInDict(User user, Point point)
         {
             return user.UserAbleToBit.ContainsKey(point);
@@ -663,7 +671,7 @@ namespace CheckersWithBot.FieldModel
 
             return false;
         }
-        public Point GetEnemyPoint(Point point, Point emptyCell) // bug with queen
+        public Point GetEnemyPoint(Point point, Point emptyCell)
         {
             if (Map[point.CordX, point.CordY].Type == CellType.CheckerF ||
                 Map[point.CordX, point.CordY].Type == CellType.CheckerS)
