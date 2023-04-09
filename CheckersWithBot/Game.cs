@@ -252,7 +252,7 @@ namespace CheckersWithBot
                     } //BOT LOGIC
 
                     
-                    //Console.ReadLine();
+                    Console.ReadLine();
                     //Console.Clear();
 
                     if (Users.Count == 2)
