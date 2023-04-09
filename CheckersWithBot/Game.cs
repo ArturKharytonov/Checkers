@@ -9,8 +9,6 @@ using CheckersWithBot.UserModels;
 
 namespace CheckersWithBot
 {
-    // 1. Write a logic for protecting a checkers.
-    // 2. Maybe fix logic for exchanges.
     public class Game
     {
         public Field Field { get; set; }
@@ -253,7 +251,7 @@ namespace CheckersWithBot
 
                     
                     Console.ReadLine();
-                    //Console.Clear();
+                    Console.Clear();
 
                     if (Users.Count == 2)
                     {

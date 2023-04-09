@@ -736,28 +736,5 @@ namespace CheckersWithBot.FieldModel
             }
             return null;
         }
-
-        public bool CanAnotherPlayerBeatOurChecker(Point point, User user)
-        {
-            for (int i = 0; i < Map.GetLength(0); i++)
-            {
-                for (int j = 0; j < Map.GetLength(1); j++)
-                {
-                    if (Map[i, j].Type != user.TypeDef &&
-                        Map[i, j].Type != user.TypeQ &&
-                        Map[i, j].Type != CellType.Empty)
-                    {
-                        List<Point> cordsOfEmptyCells = CollectEmptyCells(Map[i, j]);
-
-                        foreach (Point value in cordsOfEmptyCells)
-                        {
-                            Point enemyChecker = GetEnemyPoint(new Point(i, j), value);
-                            if (enemyChecker.CordX == point.CordX && enemyChecker.CordY == point.CordY) return true;
-                        }
-                    }
-                }
-            }
-            return false;
-        }
     }
 }
