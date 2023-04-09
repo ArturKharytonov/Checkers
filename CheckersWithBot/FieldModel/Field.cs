@@ -295,7 +295,6 @@ namespace CheckersWithBot.FieldModel
 
                             else blockMoveRight = true;
                         }
-
                     }
                     if ((i + 2 >= 0 && i + 2 < Map.GetLength(0)) &&
                              (j - temp - 1 >= 0 && j - temp - 1 < Map.GetLength(1)) && !blockMoveLeft)
