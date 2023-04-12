@@ -54,7 +54,6 @@ namespace CheckersWithBot
             } while (cordX < 0 || cordX >= Field.Map.GetLength(0) ||
                      cordY < 0 || cordY >= Field.Map.GetLength(1));
         }
-
         public void Start()
         {
             Console.Clear();
@@ -68,7 +67,7 @@ namespace CheckersWithBot
             int countOfStepsWithoutBeating = 0;
             FillDataForPlayers();
 
-            Field.PrintField(Users[0]);
+            Field.PrintField(Users[0], false, false);
             do
             {
                 for (int i = 0; i < Users.Count; i++)
@@ -116,7 +115,7 @@ namespace CheckersWithBot
                                             if (Users[i].CordsOfEmptyCells.Count > 0)
                                             {
                                                 Console.Clear();
-                                                Field.PrintField(Users[i]);
+                                                Field.PrintField(Users[i], false, false);
 
                                                 bool didUserDoStep = false;
                                                 do
@@ -130,23 +129,33 @@ namespace CheckersWithBot
                                                     {
                                                         case ExtraMenu.EnterCord:
                                                             {
-                                                                int tempX = 0;
-                                                                int tempY = 0;
-                                                                do
+                                                                Point enemyChecker = new Point(-1, -1);
+                                                                if (Users[i].CordsOfEmptyCells.Count > 1)
                                                                 {
-                                                                    Console.WriteLine("Choose empty(red) cell: ");
-                                                                    InputOfCords(out tempX, out tempY);
-                                                                } while (!Field.DoesEmptyCellExistDict(Users[i], new Point(cordX, cordY), new Point(tempX, tempY)));
+                                                                    int tempX = 0;
+                                                                    int tempY = 0;
+                                                                    do
+                                                                    {
+                                                                        Console.WriteLine("Choose empty(red) cell: ");
+                                                                        InputOfCords(out tempX, out tempY);
+                                                                    } while (!Field.DoesEmptyCellExistDict(Users[i], new Point(cordX, cordY), new Point(tempX, tempY)));
 
-                                                                Point enemyChecker =
-                                                                    Field.GetEnemyPoint(new Point(cordX, cordY),
-                                                                        new Point(tempX, tempY));
-
+                                                                    enemyChecker = 
+                                                                        Field.GetEnemyPoint(new Point(cordX, cordY),
+                                                                            new Point(tempX, tempY));
+                                                                    Field.MoveCheck(new Point(cordX, cordY), new Point(tempX, tempY));
+                                                                    checkerWhichPlayerUsed = new Point(tempX, tempY);
+                                                                }
+                                                                else
+                                                                {
+                                                                    enemyChecker =
+                                                                        Field.GetEnemyPoint(new Point(cordX, cordY),
+                                                                            Users[i].CordsOfEmptyCells[0]);
+                                                                    Field.MoveCheck(new Point(cordX, cordY), Users[i].CordsOfEmptyCells[0]);
+                                                                    checkerWhichPlayerUsed = new Point(Users[i].CordsOfEmptyCells[0].CordX, Users[i].CordsOfEmptyCells[0].CordY);
+                                                                }
                                                                 Field.Map[enemyChecker.CordX, enemyChecker.CordY].Type =
                                                                     CellType.Empty;
-
-                                                                Field.MoveCheck(new Point(cordX, cordY), new Point(tempX, tempY));
-                                                                checkerWhichPlayerUsed = new Point(tempX, tempY);
                                                                 didUserDoStep = true;
                                                             }
                                                             break;
@@ -175,8 +184,8 @@ namespace CheckersWithBot
 
                                             Field.CollectAllPossibleStepsToMoveCheck(new Point(cordX, cordY), Users[i]); // збір всіх можливих ходів для шашки яку вибрав юзер
                                             Console.Clear();
-                                            Field.PrintField(Users[i]);
-
+                                            Field.PrintField(Users[i], false, false);
+                                            
                                             bool didUserDoStep = false;
 
                                             do
@@ -190,18 +199,26 @@ namespace CheckersWithBot
                                                 {
                                                     case ExtraMenu.EnterCord:
                                                         {
-                                                            int tempCordX = 0;
-                                                            int tempCordY = 0;
-                                                            int countOfTries = 0;
-                                                            Console.WriteLine("Choose cell: ");
-                                                            do
+                                                            if (Users[i].CordsOfEmptyCells.Count > 1)
                                                             {
-                                                                InputOfCords(out tempCordX, out tempCordY);
-                                                            } while (!Field.DoesCordExistInUserListOfEmptyCells(new Point(tempCordX, tempCordY), Users[i]));
+                                                                int tempCordX = 0;
+                                                                int tempCordY = 0;
+                                                                int countOfTries = 0;
+                                                                Console.WriteLine("Choose cell: ");
+                                                                do
+                                                                {
+                                                                    InputOfCords(out tempCordX, out tempCordY);
+                                                                } while (!Field.DoesCordExistInUserListOfEmptyCells(new Point(tempCordX, tempCordY), Users[i]));
 
-                                                            Field.MoveCheck(new Point(cordX, cordY), new Point(tempCordX, tempCordY));
-                                                            Users[i].CordsOfEmptyCells.Clear();
+                                                                Field.MoveCheck(new Point(cordX, cordY), new Point(tempCordX, tempCordY));
+                                                                Users[i].CordsOfEmptyCells.Clear();
 
+                                                            }
+                                                            else
+                                                            {
+                                                                Field.MoveCheck(new Point(cordX, cordY), Users[i].CordsOfEmptyCells[0]);
+                                                                Users[i].CordsOfEmptyCells.Clear();
+                                                            }
 
                                                             didUserDoStep = true;
                                                         }
@@ -249,13 +266,12 @@ namespace CheckersWithBot
                         if (checkerWhichPlayerUsed.CordX >= 0) countOfStepsWithoutBeating = 0;
                     } //BOT LOGIC
 
-                    
-                    Console.ReadLine();
-                    Console.Clear();
+                    //Console.ReadLine();
+                    //Console.Clear();
 
                     if (Users.Count == 2)
                     {
-                        Field.PrintField(Users[i]);
+                        Field.PrintField(Users[i], true, Users[i].DoesBeatSmbBefore);
                         Users[i].CordsOfEmptyCells = new List<Point>();
 
                         IfGotQueen(i); // does player got queen
@@ -272,7 +288,6 @@ namespace CheckersWithBot
                             break;
                         } // if lost second Player
 
-                        if(Field.CountOfCheckersOnBoard(Users[0]) == Field.CountOfCheckersOnBoard(Users[1]) && Field.CountOfCheckersOnBoard(Users[0]) == 1) isEnd = true;
                         
                         if (checkerWhichPlayerUsed.CordX >= 0 && checkerWhichPlayerUsed.CordY >= 0 &&
                             Field.DoesCurrentCheckerCanBitAnyCheck(Field.Map[checkerWhichPlayerUsed.CordX, checkerWhichPlayerUsed.CordY]) &&
@@ -286,11 +301,7 @@ namespace CheckersWithBot
                 if (countOfStepsWithoutBeating == _maxCountStepsWithoutBeating) isEnd = true;
             } while (!isEnd);
 
-
-
-
-
-            Field.PrintField(Users[0]);
+            Field.PrintField(Users[0], false, false);
             Console.ReadLine();
 
             if (Users.Count == 2)
@@ -321,10 +332,46 @@ namespace CheckersWithBot
             }
             else // write logic when bot need to accept draw
             {
-
+                (int, int) values = GetValueOfCheckers();
+                if (tempIndex == 0 && values.Item1 <= values.Item2 && CountOfCheckers() <= 4)
+                    return true;
+                if (tempIndex == 1 && values.Item1 >= values.Item2 && CountOfCheckers() <= 4)
+                    return true;
             }
             return false;
-        } // bug WRITE TILL END
+        }
+
+        public (int, int) GetValueOfCheckers()
+        {
+            int valueOfWhiteCheckers = 0;
+            int valueOfOfBlackCheckers = 0;
+            for (int i = 0; i < Field.Map.GetLength(0); i++)
+            {
+                for (int j = 0; j < Field.Map.GetLength(1); j++)
+                {
+                    if (Field.Map[i, j].Type == CellType.CheckerF) valueOfWhiteCheckers++;
+                    else if(Field.Map[i, j].Type == CellType.QueenF) valueOfWhiteCheckers+=3;
+                    else if (Field.Map[i, j].Type == CellType.CheckerS) valueOfOfBlackCheckers++;
+                    else if (Field.Map[i, j].Type == CellType.QueenS) valueOfOfBlackCheckers += 3;
+                }
+            }
+
+            return (valueOfWhiteCheckers, valueOfOfBlackCheckers);
+        }
+
+        public int CountOfCheckers()
+        {
+            int count = 0;
+            for (int i = 0; i < Field.Map.GetLength(0); i++)
+            {
+                for (int j = 0; j < Field.Map.GetLength(1); j++)
+                {
+                    if (Field.Map[i, j].Type != CellType.Empty) count++;
+                }
+            }
+
+            return count;
+        }
         public void IfGotQueen(int indexOfPlayer)
         {
             if (indexOfPlayer == 0)

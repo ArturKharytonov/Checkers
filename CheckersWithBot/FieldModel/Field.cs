@@ -42,6 +42,32 @@ namespace CheckersWithBot.FieldModel
                 }
             }
         }
+
+        //public Field()
+        //{
+        //    Map = new Cell[8, 8];
+        //    for (int i = 0; i < Map.GetLength(0); i++)
+        //    {
+        //        for (int j = 0; j < Map.GetLength(1); j++)
+        //        {
+        //            Map[i, j] = new Cell(new Point(i, j));
+        //        }
+        //    }
+
+        //    Map[0, 4] = new Cell(CellType.CheckerF, new Point(0, 4));
+        //    Map[1, 1] = new Cell(CellType.CheckerF, new Point(1, 1));
+        //    Map[1, 5] = new Cell(CellType.CheckerF, new Point(1, 5));
+        //    Map[2, 6] = new Cell(CellType.CheckerF, new Point(2, 6));
+        //    Map[3, 1] = new Cell(CellType.CheckerF, new Point(3, 1));
+        //    Map[4, 2] = new Cell(CellType.CheckerF, new Point(4, 2));
+
+        //    Map[5, 1] = new Cell(CellType.CheckerS, new Point(5, 1));
+        //    Map[6, 0] = new Cell(CellType.CheckerS, new Point(6, 0));
+        //    Map[6, 4] = new Cell(CellType.CheckerS, new Point(6, 4));
+        //    Map[6, 6] = new Cell(CellType.CheckerS, new Point(6, 6));
+        //    Map[7, 7] = new Cell(CellType.CheckerS, new Point(7, 7));
+        //}
+
         public Field(Field field)
         {
             Map = new Cell[8, 8];
@@ -68,7 +94,7 @@ namespace CheckersWithBot.FieldModel
             return count;
         }
         // FIELD
-        public void PrintRaw(int i, User user)
+        public void PrintRaw(int i, User user, bool afterStep, bool beating)
         { 
             Console.Write($"  \u2502");
             for (int j = 0; j < Map.GetLength(1); j++)
@@ -77,7 +103,7 @@ namespace CheckersWithBot.FieldModel
                 else if (i % 2 != 0 && j % 2 == 0) Console.BackgroundColor = ConsoleColor.White;
 
                 if (DoesCordExistInUserListOfEmptyCells(new Point(i, j), user))
-                    Console.BackgroundColor = ConsoleColor.DarkYellow;
+                    Console.BackgroundColor = ConsoleColor.Green;
                 
                 switch (Map[i, j].Type)
                 {
@@ -111,9 +137,25 @@ namespace CheckersWithBot.FieldModel
                         {
                             if (DoesCordExistInUserListOfEmptyCells(new Point(i, j), user))
                             {
-                                Console.BackgroundColor = ConsoleColor.DarkRed;
-                                Console.Write("       ");
-                                Console.BackgroundColor = ConsoleColor.Black;
+                                if (afterStep && beating)
+                                {
+                                    Console.BackgroundColor = ConsoleColor.Blue;
+                                    Console.Write("       ");
+                                    Console.BackgroundColor = ConsoleColor.Black;
+                                }
+                                else if (afterStep)
+                                {
+                                    Console.BackgroundColor = ConsoleColor.Green;
+                                    Console.Write("       ");
+                                    Console.BackgroundColor = ConsoleColor.Black;
+                                }
+                                else
+                                {
+                                    Console.BackgroundColor = ConsoleColor.DarkRed;
+                                    Console.Write("       ");
+                                    Console.BackgroundColor = ConsoleColor.Black;
+                                }
+                                
                             }
                             else Console.Write("       ");
                         }
@@ -125,7 +167,7 @@ namespace CheckersWithBot.FieldModel
             Console.Write($"\u2502");
             Console.WriteLine();
         }
-        public void PrintField(User user)
+        public void PrintField(User user, bool afterStep, bool beating)
         {
             Console.WriteLine("      A      B      C      D      E      F      G      H");
             Console.Write("  \u250c");
@@ -137,7 +179,7 @@ namespace CheckersWithBot.FieldModel
             Console.WriteLine();
             for (int i = Map.GetLength(0) - 1; i >= 0; i--)
             {
-                PrintRaw(i, user);
+                PrintRaw(i, user, afterStep, beating);
                 Console.Write($"{i+1} \u2502");
                 for (int j = 0; j < Map.GetLength(1); j++)
                 {
@@ -145,7 +187,7 @@ namespace CheckersWithBot.FieldModel
                     else if(i % 2 != 0 && j % 2 == 0) Console.BackgroundColor = ConsoleColor.White;
 
                     if (DoesCordExistInUserListOfEmptyCells(new Point(i, j), user))
-                        Console.BackgroundColor = ConsoleColor.DarkYellow;
+                        Console.BackgroundColor = ConsoleColor.Green;
                     
                     switch (Map[i, j].Type)
                     {
@@ -153,7 +195,6 @@ namespace CheckersWithBot.FieldModel
                             {
                                 Console.ForegroundColor = ConsoleColor.White;
                                 Console.Write("   \u25a0   ");
-                                
                             }
                             break;
                         case CellType.CheckerS:
@@ -165,13 +206,13 @@ namespace CheckersWithBot.FieldModel
                             break;
                         case CellType.QueenF:
                             {
-                                Console.Write("   O   ");
+                                Console.Write("   @   ");
                             }
                             break;
                         case CellType.QueenS:
                             {
                                 Console.ForegroundColor = ConsoleColor.DarkGray;
-                                Console.Write("   O   ");
+                                Console.Write("   @   ");
                                 Console.ForegroundColor = ConsoleColor.White;
                             }
                             break;
@@ -179,9 +220,24 @@ namespace CheckersWithBot.FieldModel
                             {
                                 if (DoesCordExistInUserListOfEmptyCells(new Point(i, j), user))
                                 {
-                                    Console.BackgroundColor = ConsoleColor.DarkRed;
-                                    Console.Write("       ");
-                                    Console.BackgroundColor = ConsoleColor.Black;
+                                    if (afterStep && beating)
+                                    {
+                                        Console.BackgroundColor = ConsoleColor.Blue;
+                                        Console.Write("       ");
+                                        Console.BackgroundColor = ConsoleColor.Black;
+                                    }
+                                    else if (afterStep)
+                                    {
+                                        Console.BackgroundColor = ConsoleColor.Green;
+                                        Console.Write("       ");
+                                        Console.BackgroundColor = ConsoleColor.Black;
+                                    }
+                                    else
+                                    {
+                                        Console.BackgroundColor = ConsoleColor.DarkRed;
+                                        Console.Write("       ");
+                                        Console.BackgroundColor = ConsoleColor.Black;
+                                    }
                                 }
 
                                 else Console.Write("       ");
@@ -192,7 +248,7 @@ namespace CheckersWithBot.FieldModel
                 }
                 Console.Write($"\u2502");
                 Console.WriteLine();
-                PrintRaw(i, user);
+                PrintRaw(i, user,afterStep, beating);
             }
 
             Console.Write("  \u2514");
@@ -205,6 +261,161 @@ namespace CheckersWithBot.FieldModel
             Console.WriteLine();
         }
         // FIELD
+        public bool DoesCheckerOnFieldCanBeat(User user, List<Point> underAttack)
+        {
+            for (int i = 0; i < Map.GetLength(0); i++)
+            {
+                for (int j = 0; j < Map.GetLength(1); j++)
+                {
+                    if (Map[i, j].Type == user.TypeDef || Map[i, j].Type == user.TypeQ)
+                        if (DoesCurrentCheckerCanBitAnyCheck(Map[i, j], underAttack)) return true;
+                }
+            }
+            return false;
+        }
+        public bool DoesCurrentCheckerCanBitAnyCheck(Cell cell, List<Point> underAttack)
+        {
+            CellType enemyChecker;
+            CellType enemyQueen;
+            CellType currentPlayerChecker;
+            CellType currentPlayerQueen;
+            if (cell.Type == CellType.CheckerF || cell.Type == CellType.QueenF)
+            {
+                enemyChecker = CellType.CheckerS;
+                enemyQueen = CellType.QueenS;
+                currentPlayerChecker = CellType.CheckerF;
+                currentPlayerQueen = CellType.QueenF;
+            }
+            else
+            {
+                enemyChecker = CellType.CheckerF;
+                enemyQueen = CellType.QueenF;
+                currentPlayerChecker = CellType.CheckerS;
+                currentPlayerQueen = CellType.QueenS;
+            }
+
+            if (cell.Type == CellType.CheckerF || cell.Type == CellType.CheckerS) // перевірка чи проста шашка може побити
+            {
+                if ((cell.Point.CordX + 2 >= 0 && cell.Point.CordX + 2 < Map.GetLength(0)) &&
+                    (cell.Point.CordY + 2 >= 0 && cell.Point.CordY + 2 < Map.GetLength(1)))
+                {
+                    if (Map[cell.Point.CordX + 2, cell.Point.CordY + 2].Type == CellType.Empty &&
+                        (Map[cell.Point.CordX + 1, cell.Point.CordY + 1].Type == enemyChecker ||
+                         Map[cell.Point.CordX + 1, cell.Point.CordY + 1].Type == enemyQueen) &&
+                        !underAttack.Contains(new Point(cell.Point.CordX + 1, cell.Point.CordY + 1))) return true;
+                }
+                if ((cell.Point.CordX + 2 >= 0 && cell.Point.CordX + 2 < Map.GetLength(0)) &&
+                         (cell.Point.CordY - 2 >= 0 && cell.Point.CordY - 2 < Map.GetLength(1)))
+                {
+                    if (Map[cell.Point.CordX + 2, cell.Point.CordY - 2].Type == CellType.Empty &&
+                        (Map[cell.Point.CordX + 1, cell.Point.CordY - 1].Type == enemyChecker ||
+                         Map[cell.Point.CordX + 1, cell.Point.CordY - 1].Type == enemyQueen) &&
+                        !underAttack.Contains(new Point(cell.Point.CordX + 1, cell.Point.CordY - 1))) return true;
+                }
+
+                if ((cell.Point.CordX - 2 >= 0 && cell.Point.CordX - 2 < Map.GetLength(0)) &&
+                         (cell.Point.CordY + 2 >= 0 && cell.Point.CordY + 2 < Map.GetLength(1)))
+                {
+                    if (Map[cell.Point.CordX - 2, cell.Point.CordY + 2].Type == CellType.Empty &&
+                        (Map[cell.Point.CordX - 1, cell.Point.CordY + 1].Type == enemyChecker ||
+                         Map[cell.Point.CordX - 1, cell.Point.CordY + 1].Type == enemyQueen) &&
+                        !underAttack.Contains(new Point(cell.Point.CordX - 1, cell.Point.CordY + 1))) return true;
+
+                }
+                if ((cell.Point.CordX - 2 >= 0 && cell.Point.CordX - 2 < Map.GetLength(0)) &&
+                         (cell.Point.CordY - 2 >= 0 && cell.Point.CordY - 2 < Map.GetLength(1)))
+                {
+                    if (Map[cell.Point.CordX - 2, cell.Point.CordY - 2].Type == CellType.Empty &&
+                        (Map[cell.Point.CordX - 1, cell.Point.CordY - 1].Type == enemyChecker ||
+                         Map[cell.Point.CordX - 1, cell.Point.CordY - 1].Type == enemyQueen) &&
+                        !underAttack.Contains(new Point(cell.Point.CordX - 1, cell.Point.CordY - 1))) return true;
+                }
+            }
+
+            else // перевірка чи дамка може побити
+            {
+                int temp = 1;
+                int j = cell.Point.CordY;
+                bool blockMoveRight = false;
+                bool blockMoveLeft = false;
+
+                for (int i = cell.Point.CordX; i < Map.GetLength(0); i++, temp++) // перевірка вниз //bug with cordX +- 1 mb i will replace it for time everywhere
+                {
+                    if ((i + 2 >= 0 && i + 2 < Map.GetLength(0)) &&
+                        (j + temp + 1 >= 0 && j + temp + 1 < Map.GetLength(1)) && !blockMoveRight)
+                    {
+                        if (Map[i + 1, j + temp].Type == currentPlayerChecker ||
+                            Map[i + 1, j + temp].Type == currentPlayerQueen) blockMoveRight = true;
+
+                        else if ((Map[i + 1, j + temp].Type == enemyChecker ||
+                                  Map[i + 1, j + temp].Type == enemyQueen) && 
+                                  !underAttack.Contains(new Point(i + 1, j + temp)))
+                        {
+                            if (Map[i + 2, j + temp + 1].Type == CellType.Empty) return true;
+
+                            else blockMoveRight = true;
+                        }
+                    }
+                    if ((i + 2 >= 0 && i + 2 < Map.GetLength(0)) &&
+                             (j - temp - 1 >= 0 && j - temp - 1 < Map.GetLength(1)) && !blockMoveLeft)
+                    {
+                        if (Map[i + 1, j - temp].Type == currentPlayerChecker ||
+                            Map[i + 1, j - temp].Type == currentPlayerQueen) blockMoveLeft = true;
+
+                        else if ((Map[i + 1, j - temp].Type == enemyChecker ||
+                                  Map[i + 1, j - temp].Type == enemyQueen) &&
+                                 !underAttack.Contains(new Point(i + 1, j - temp)))
+                        {
+                            if (Map[i + 2, j - temp - 1].Type == CellType.Empty)
+                                return true;
+                            else blockMoveLeft = true;
+                        }
+                    }
+                }
+
+                blockMoveLeft = false;
+                blockMoveRight = false;
+                temp = 1;
+                j = cell.Point.CordY;
+                for (int i = cell.Point.CordX; i >= 0; i--, temp++) // перевірка вверх
+                {
+                    if ((i - 2 >= 0 && i - 2 < Map.GetLength(0)) &&
+                        (j + temp + 1 >= 0 && j + temp + 1 < Map.GetLength(1)) && !blockMoveRight)
+                    {
+
+                        if (Map[i - 1, j + temp].Type == currentPlayerChecker ||
+                            Map[i - 1, j + temp].Type == currentPlayerQueen) blockMoveRight = true;
+
+                        else if ((Map[i - 1, j + temp].Type == enemyChecker ||
+                                  Map[i - 1, j + temp].Type == enemyQueen) &&
+                                 !underAttack.Contains(new Point(i - 1, j + temp)))
+                        {
+                            if (Map[i - 2, j + temp + 1].Type == CellType.Empty)
+                                return true;
+                            else
+                                blockMoveRight = true;
+
+                        }
+                    }
+                    if ((i - 2 >= 0 && i - 2 < Map.GetLength(0)) &&
+                             (j - temp - 1 >= 0 && j - temp - 1 < Map.GetLength(1)) && !blockMoveLeft)
+                    {
+                        if (Map[i - 1, j - temp].Type == currentPlayerChecker ||
+                            Map[i - 1, j - temp].Type == currentPlayerQueen) blockMoveLeft = true;
+
+                        else if ((Map[i - 1, j - temp].Type == enemyChecker ||
+                                  Map[i - 1, j - temp].Type == enemyQueen) &&
+                                  !underAttack.Contains(new Point(i - 1, j - temp)))
+                        {
+                            if (Map[i - 2, j - temp - 1].Type == CellType.Empty)
+                                return true;
+                            else blockMoveLeft = true;
+                        }
+                    }
+                }
+            }
+            return false;
+        } // checking if checker can bit
 
         public bool DoesCheckerOnFieldCanBeat(User user)
         {
