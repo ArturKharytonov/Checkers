@@ -54,18 +54,13 @@ namespace CheckersWithBot.FieldModel
         //        }
         //    }
 
-        //    Map[0, 4] = new Cell(CellType.CheckerF, new Point(0, 4));
-        //    Map[1, 1] = new Cell(CellType.CheckerF, new Point(1, 1));
-        //    Map[1, 5] = new Cell(CellType.CheckerF, new Point(1, 5));
-        //    Map[2, 6] = new Cell(CellType.CheckerF, new Point(2, 6));
-        //    Map[3, 1] = new Cell(CellType.CheckerF, new Point(3, 1));
-        //    Map[4, 2] = new Cell(CellType.CheckerF, new Point(4, 2));
+        //    Map[0, 6] = new Cell(CellType.QueenF, new Point(6, 0));
+        //    Map[7, 1] = new Cell(CellType.QueenF, new Point(7, 1));
 
-        //    Map[5, 1] = new Cell(CellType.CheckerS, new Point(5, 1));
-        //    Map[6, 0] = new Cell(CellType.CheckerS, new Point(6, 0));
-        //    Map[6, 4] = new Cell(CellType.CheckerS, new Point(6, 4));
-        //    Map[6, 6] = new Cell(CellType.CheckerS, new Point(6, 6));
-        //    Map[7, 7] = new Cell(CellType.CheckerS, new Point(7, 7));
+
+        //    Map[1, 7] = new Cell(CellType.CheckerS, new Point(1, 7));
+        //    Map[2, 6] = new Cell(CellType.CheckerS, new Point(2, 6));
+
         //}
 
         public Field(Field field)
@@ -80,6 +75,18 @@ namespace CheckersWithBot.FieldModel
             }
         }
 
+        public Point GetPointFromDict(User user)
+        {
+            for (int i = 0; i < Map.GetLength(0); i++)
+            {
+                for (int j = 0; j < Map.GetLength(1); j++)
+                {
+                    if (user.UserAbleToBit.ContainsKey(new Point(i, j))) return new Point(i, j);
+                }
+            }
+
+            return null;
+        }
         public int CountOfCheckersOnBoard(User user)
         {
             int count = 0;
@@ -261,6 +268,28 @@ namespace CheckersWithBot.FieldModel
             Console.WriteLine();
         }
         // FIELD
+        public bool DoesEnemyCanBeatCurrentChecker(Point cell, User currentPlayer)
+        {
+            Dictionary<Point, List<Point>> tempDict = CollectDictionary(currentPlayer);
+            List<Point> tempList = new List<Point>();
+            for (int i = 0; i < Map.GetLength(0); i++)
+            {
+                for (int j = 0; j < Map.GetLength(1); j++)
+                {
+                    if (tempDict.TryGetValue(new Point(i, j), out tempList))
+                    {
+                        foreach (Point point in tempList)
+                        {
+                            if (GetEnemyPoint(new Point(i, j), point).CordX == cell.CordX &&
+                                GetEnemyPoint(new Point(i, j), point).CordY == cell.CordY) return true;
+                        }
+                    }
+                }
+            }
+            
+            return false;
+        }
+
         public bool DoesCheckerOnFieldCanBeat(User user, List<Point> underAttack)
         {
             for (int i = 0; i < Map.GetLength(0); i++)
@@ -846,7 +875,7 @@ namespace CheckersWithBot.FieldModel
             }
             return dict;
         }
-        public Dictionary<Point, List<Point>> CollectDictionaryForOneChecker(User user, Point point)
+        public Dictionary<Point, List<Point>> CollectDictionaryForOneChecker(Point point)
         {
             Dictionary<Point, List<Point>> dict = new Dictionary<Point, List<Point>>();
             List<Point> cells = CollectEmptyCells(Map[point.CordX, point.CordY]);

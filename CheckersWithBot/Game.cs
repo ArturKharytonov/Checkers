@@ -54,6 +54,7 @@ namespace CheckersWithBot
             } while (cordX < 0 || cordX >= Field.Map.GetLength(0) ||
                      cordY < 0 || cordY >= Field.Map.GetLength(1));
         }
+
         public void Start()
         {
             Console.Clear();
@@ -90,31 +91,40 @@ namespace CheckersWithBot
                             {
                                 case MenuInGame.DoStep:
                                     {
-                                        Console.WriteLine("Choose your checker: ");
+                                        
                                         if (Field.DoesCheckerOnFieldCanBeat(Users[i])) // якщо гравецб може побити шашку
                                         {
                                             if (!Users[i].DoesBeatSmbBefore)
                                                 Users[i].UserAbleToBit = Field.CollectDictionary(Users[i]);
                                             else
-                                                Users[i].UserAbleToBit = Field.CollectDictionaryForOneChecker(Users[i], checkerWhichPlayerUsed);
+                                                Users[i].UserAbleToBit = Field.CollectDictionaryForOneChecker(checkerWhichPlayerUsed);
                                             Users[i].DoesBeatSmbBefore = true;
                                             countOfStepsWithoutBeating = 0;
-
-                                            do
+                                            if (Users[i].UserAbleToBit.Count > 1)
                                             {
-                                                Console.WriteLine("U can bit checker: ");
-                                                InputOfCords(out cordX, out cordY);
-                                            } while ((Field.Map[cordX, cordY].Type != Users[i].TypeDef &&
-                                                     Field.Map[cordX, cordY].Type != Users[i].TypeQ) ||
-                                                     !Field.DoesPointExistInDict(Users[i], new Point(cordX, cordY)));
+                                                do
+                                                {
+                                                    Console.WriteLine("U can bit checker: ");
+                                                    InputOfCords(out cordX, out cordY);
+                                                } while ((Field.Map[cordX, cordY].Type != Users[i].TypeDef &&
+                                                          Field.Map[cordX, cordY].Type != Users[i].TypeQ) ||
+                                                         !Field.DoesPointExistInDict(Users[i], new Point(cordX, cordY)));
+                                            }
+
+                                            else if (Users[i].UserAbleToBit.Count == 1)
+                                            {
+                                                Point temp = Field.GetPointFromDict(Users[i]);
+                                                cordX = temp.CordX;
+                                                cordY = temp.CordY;
+                                            }
 
                                             // Fill user empty cells
                                             Users[i].CordsOfEmptyCells =
                                                 Field.GetEmptyCells(Users[i], new Point(cordX, cordY));
 
-                                            if (Users[i].CordsOfEmptyCells.Count > 0)
+                                            if (Users[i].CordsOfEmptyCells.Count > 1)
                                             {
-                                                Console.Clear();
+                                                //Console.Clear();
                                                 Field.PrintField(Users[i], false, false);
 
                                                 bool didUserDoStep = false;
@@ -145,15 +155,13 @@ namespace CheckersWithBot
                                                                             new Point(tempX, tempY));
                                                                     Field.MoveCheck(new Point(cordX, cordY), new Point(tempX, tempY));
                                                                     checkerWhichPlayerUsed = new Point(tempX, tempY);
+
+                                                                    Users[i].CordsOfEmptyCells = new List<Point>()
+                                                                    {
+                                                                        new Point(cordX, cordY), new Point(tempX, tempY)
+                                                                    };
                                                                 }
-                                                                else
-                                                                {
-                                                                    enemyChecker =
-                                                                        Field.GetEnemyPoint(new Point(cordX, cordY),
-                                                                            Users[i].CordsOfEmptyCells[0]);
-                                                                    Field.MoveCheck(new Point(cordX, cordY), Users[i].CordsOfEmptyCells[0]);
-                                                                    checkerWhichPlayerUsed = new Point(Users[i].CordsOfEmptyCells[0].CordX, Users[i].CordsOfEmptyCells[0].CordY);
-                                                                }
+
                                                                 Field.Map[enemyChecker.CordX, enemyChecker.CordY].Type =
                                                                     CellType.Empty;
                                                                 didUserDoStep = true;
@@ -171,10 +179,29 @@ namespace CheckersWithBot
                                                     }
                                                 } while (extraMenu != ExtraMenu.ChooseAnotherChecker && !didUserDoStep);
                                             }
+                                            else if (Users[i].CordsOfEmptyCells.Count == 1)
+                                            {
+                                                Point enemyChecker =
+                                                    Field.GetEnemyPoint(new Point(cordX, cordY),
+                                                        Users[i].CordsOfEmptyCells[0]);
+                                                Field.MoveCheck(new Point(cordX, cordY), Users[i].CordsOfEmptyCells[0]);
+                                                checkerWhichPlayerUsed = new Point(Users[i].CordsOfEmptyCells[0].CordX, Users[i].CordsOfEmptyCells[0].CordY);
+                                                Point temp =
+                                                    new Point(Users[i].CordsOfEmptyCells[0].CordX,
+                                                        Users[i].CordsOfEmptyCells[0].CordY);
+                                                Users[i].CordsOfEmptyCells = new List<Point>()
+                                                {
+                                                    new Point(cordX, cordY), temp
+                                                };
+
+                                                Field.Map[enemyChecker.CordX, enemyChecker.CordY].Type =
+                                                    CellType.Empty;
+                                            }
                                         }
 
                                         else 
                                         {
+                                            Console.WriteLine("Choose your checker: ");
                                             Users[i].DoesBeatSmbBefore = false;
                                             do
                                             {
@@ -183,7 +210,7 @@ namespace CheckersWithBot
                                                      Field.Map[cordX, cordY].Type != Users[i].TypeQ);
 
                                             Field.CollectAllPossibleStepsToMoveCheck(new Point(cordX, cordY), Users[i]); // збір всіх можливих ходів для шашки яку вибрав юзер
-                                            Console.Clear();
+                                            //Console.Clear();
                                             Field.PrintField(Users[i], false, false);
                                             
                                             bool didUserDoStep = false;
@@ -211,15 +238,17 @@ namespace CheckersWithBot
                                                                 } while (!Field.DoesCordExistInUserListOfEmptyCells(new Point(tempCordX, tempCordY), Users[i]));
 
                                                                 Field.MoveCheck(new Point(cordX, cordY), new Point(tempCordX, tempCordY));
-                                                                Users[i].CordsOfEmptyCells.Clear();
-
+                                                                Users[i].CordsOfEmptyCells = new List<Point>() { new Point(cordX, cordY), new Point(tempCordX, tempCordY) };
                                                             }
                                                             else
                                                             {
                                                                 Field.MoveCheck(new Point(cordX, cordY), Users[i].CordsOfEmptyCells[0]);
-                                                                Users[i].CordsOfEmptyCells.Clear();
-                                                            }
+                                                                Point temp = new Point(
+                                                                    Users[i].CordsOfEmptyCells[0].CordX,
+                                                                    Users[i].CordsOfEmptyCells[0].CordY);
 
+                                                                Users[i].CordsOfEmptyCells = new List<Point>() {new Point(cordX, cordY), temp};
+                                                            }
                                                             didUserDoStep = true;
                                                         }
                                                         break;
@@ -250,6 +279,11 @@ namespace CheckersWithBot
                                             Console.WriteLine("Player accepted");
                                             isEnd = true;
                                         }
+                                        else
+                                        {
+                                            step = false;
+                                            Console.WriteLine("Enemy declined draw");
+                                        }
                                     }
                                     break;
                                 default:
@@ -266,8 +300,9 @@ namespace CheckersWithBot
                         if (checkerWhichPlayerUsed.CordX >= 0) countOfStepsWithoutBeating = 0;
                     } //BOT LOGIC
 
-                    //Console.ReadLine();
-                    //Console.Clear();
+                    
+                    Console.ReadLine();
+                    Console.Clear();
 
                     if (Users.Count == 2)
                     {
@@ -358,7 +393,6 @@ namespace CheckersWithBot
 
             return (valueOfWhiteCheckers, valueOfOfBlackCheckers);
         }
-
         public int CountOfCheckers()
         {
             int count = 0;
