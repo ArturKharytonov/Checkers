@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using CheckersWithBot;
 using CheckersWithBot.FieldModel;
+using CheckersWithBot.UserModels;
 
 namespace CheckersWithBot.UserModels
 {
@@ -18,12 +20,13 @@ namespace CheckersWithBot.UserModels
             UserAbleToBit = new Dictionary<Point, List<Point>>();
             DoesBeatSmbBefore = false;
         }
-        
+
         private int GetEnemyIndex(int botIndex)
         {
             if (botIndex == 0) return 1;
             return 0;
         }
+
         private bool DoesBotGotAlmostQueen(int indexOfPlayer, Field field, Point point)
         {
             if (indexOfPlayer == 0)
@@ -38,11 +41,13 @@ namespace CheckersWithBot.UserModels
             {
                 if (point.CordY + 1 < field.Map.GetLength(1) &&
                     field.Map[0, point.CordY + 1].Type == CellType.Empty &&
-                    point.CordY - 1 >= 0 && field.Map[0, point.CordY - 1].Type == CellType.Empty && point.CordX == 1) return true;
+                    point.CordY - 1 >= 0 && field.Map[0, point.CordY - 1].Type == CellType.Empty &&
+                    point.CordX == 1) return true;
             }
 
             return false;
         }
+
         private bool DoesBotGotQueen(int indexOfPlayer, Field field, Point point)
         {
             if (indexOfPlayer == 0 && point.CordX == field.Map.GetLength(0) - 1)
@@ -52,20 +57,13 @@ namespace CheckersWithBot.UserModels
 
             return false;
         }
-        public List<Route> AddToListsOfRoutes(List<Route> first, List<Route> second)
-        {
-            for (int i = 0; i < second.Count; i++)
-            {
-                first.Add(second[i]);
-            }
 
-            return first;
-        }
         private User GetEnemy(List<User> users)
         {
             if (this.Name == users[0].Name) return users[1];
             return users[0];
         }
+
         private int GetCountOfEmptyCells(Field field)
         {
             List<Point> points = new List<Point>();
@@ -89,6 +87,7 @@ namespace CheckersWithBot.UserModels
 
             return countOfEmptyCells;
         }
+
         private void Moving(Point startPoint, Point endPoint, Field field)
         {
             Point enemyChecker =
@@ -98,6 +97,7 @@ namespace CheckersWithBot.UserModels
 
             field.MoveCheck(startPoint, endPoint);
         }
+
         private int GetMinValueFromListOfRoutes(List<Route> routes)
         {
             int minValue = Int32.MaxValue;
@@ -108,9 +108,9 @@ namespace CheckersWithBot.UserModels
 
             return minValue;
         }
+
         public Point BotStep(Game game, int indexOfPlayer, Point point)
         {
-            
             bool underAtack = true;
             List<Point> allCheckersUnderAttack = new List<Point>();
             this.CordsOfEmptyCells = new List<Point>();
@@ -157,8 +157,10 @@ namespace CheckersWithBot.UserModels
                     enemy.UserAbleToBit = game.Field.CollectDictionary(enemy);
                     allCheckersUnderAttack = CollectAllPointsUnderAttack(game.Field, enemy);
                     List<List<PointsOfChecker>> toProtectChecker =
-                        CollectProtectingMoves(game, allCheckersUnderAttack, enemy); // list of lists of checkers to protect
-                    PointsOfChecker points = FindBestStep(game, enemy, toProtectChecker, indexOfPlayer, allCheckersUnderAttack); // знайти найкращий варіант для захисту
+                        CollectProtectingMoves(game, allCheckersUnderAttack,
+                            enemy); // list of lists of checkers to protect
+                    PointsOfChecker points = FindBestStep(game, enemy, toProtectChecker, indexOfPlayer,
+                        allCheckersUnderAttack); // знайти найкращий варіант для захисту
 
                     if (points != null)
                     {
@@ -180,7 +182,9 @@ namespace CheckersWithBot.UserModels
                     if (IsPossibleToGetQueen(game.Field, indexOfPlayer)) // чи можна отримати королеву
                         GetQueen(game.Field, indexOfPlayer);
 
-                    else if (IsPossibleToCreateDanger(game)) // чи можна зробити безпечний хід щоб поставити іншу шашку під загрозу
+                    else if
+                        (IsPossibleToCreateDanger(
+                            game)) // чи можна зробити безпечний хід щоб поставити іншу шашку під загрозу
                     {
                         this.CordsOfEmptyCells = new List<Point>();
                         (Point, Point) carefulStepWithDanger = GetPointForDanger(game);
@@ -212,6 +216,7 @@ namespace CheckersWithBot.UserModels
                         DoRandomStep(game);
                 }
             }
+
             return new Point(-1, -1);
         }
 
@@ -225,6 +230,7 @@ namespace CheckersWithBot.UserModels
 
             return false;
         }
+
         private List<Point> CollectAllPointsUnderAttack(Field field, User enemy)
         {
             List<Point> checkersUnderAttack = new List<Point>();
@@ -251,6 +257,7 @@ namespace CheckersWithBot.UserModels
 
             return checkersUnderAttack;
         }
+
         private List<List<PointsOfChecker>> CollectProtectingMoves(Game game, List<Point> pointsUnderAttack, User enemy)
         {
             List<List<PointsOfChecker>> list = new List<List<PointsOfChecker>>();
@@ -264,7 +271,7 @@ namespace CheckersWithBot.UserModels
                     {
                         // bug maybe fix this block of code
                         if ((game.Field.Map[i, j].Type == this.TypeDef ||
-                            game.Field.Map[i, j].Type == this.TypeQ) &&
+                             game.Field.Map[i, j].Type == this.TypeQ) &&
                             i == pointsUnderAttack[index].CordX && j == pointsUnderAttack[index].CordY)
                         {
                             game.Field.CollectAllPossibleStepsToMoveCheck(new Point(i, j), this);
@@ -273,7 +280,7 @@ namespace CheckersWithBot.UserModels
                                 foreach (var endPoint in this.CordsOfEmptyCells)
                                 {
                                     game.Field.MoveCheck(new Point(i, j), endPoint);
-                                    if (!CanEnemy(game, endPoint, enemy)) 
+                                    if (!CanEnemy(game, endPoint, enemy))
                                         list[index].Add(new PointsOfChecker(new Point(i, j), endPoint));
                                     game.Field = new Field(copy);
                                 }
@@ -304,15 +311,18 @@ namespace CheckersWithBot.UserModels
                 }
 
             }
-            
+
             return list;
         }
+
         private PointsOfChecker FindBestStep(Game game, User enemy,
             List<List<PointsOfChecker>> toProtectChecker, int indexOfPlayer, List<Point> pointsUnderAttack)
         {
             int enemyIndex = GetEnemyIndex(indexOfPlayer);
             Field copy = new Field(game.Field);
-            List<List<List<Route>>> allPossibleRoutes = new List<List<List<Route>>>(); // list 1 - all checkers under danger; list 2 - all possible kinds of protecting; and list 3 - routes
+            List<List<List<Route>>>
+                allPossibleRoutes =
+                    new List<List<List<Route>>>(); // list 1 - all checkers under danger; list 2 - all possible kinds of protecting; and list 3 - routes
             List<List<Route>> botRoutes = new List<List<Route>>();
 
             for (int i = 0; i < toProtectChecker.Count; i++)
@@ -327,7 +337,8 @@ namespace CheckersWithBot.UserModels
                         List<Route> forEnemy = CollectRoutesForEnemy(enemy, game, new Field(game.Field));
                         if (forEnemy.Count > 0)
                         {
-                            CalculateValuesOfRoutes(forEnemy, game.Field, new Field(game.Field), enemyIndex, game.Users);
+                            CalculateValuesOfRoutes(forEnemy, game.Field, new Field(game.Field), enemyIndex,
+                                game.Users);
                             allPossibleRoutes[i].Add(forEnemy);
                         }
                     }
@@ -342,7 +353,8 @@ namespace CheckersWithBot.UserModels
             {
                 for (int secondIndex = 0; secondIndex < toProtectChecker[firstIndex].Count; secondIndex++)
                 {
-                    game.Field.MoveCheck(toProtectChecker[firstIndex][secondIndex].StartPoint, toProtectChecker[firstIndex][secondIndex].EndPoint);
+                    game.Field.MoveCheck(toProtectChecker[firstIndex][secondIndex].StartPoint,
+                        toProtectChecker[firstIndex][secondIndex].EndPoint);
                     Field secondCopy = new Field(game.Field);
                     for (int k = 0; k < allPossibleRoutes[firstIndex][secondIndex].Count; k++)
                     {
@@ -354,14 +366,17 @@ namespace CheckersWithBot.UserModels
                             List<Route> forBot = CollectRoutesForEnemy(this, game, new Field(game.Field));
                             if (forBot.Count > 0)
                             {
-                                CalculateValuesOfRoutes(forBot, game.Field, new Field(game.Field), indexOfPlayer, game.Users);
+                                CalculateValuesOfRoutes(forBot, game.Field, new Field(game.Field), indexOfPlayer,
+                                    game.Users);
                                 botRoutes.Add(forBot);
                             }
                         }
                         else botRoutes.Add(new List<Route>());
+
                         game.Field = new Field(secondCopy);
                     }
-                    if(allPossibleRoutes[firstIndex][secondIndex].Count == 0) botRoutes.Add(new List<Route>());
+
+                    if (allPossibleRoutes[firstIndex][secondIndex].Count == 0) botRoutes.Add(new List<Route>());
 
                     game.Field = new Field(copy);
                 }
@@ -371,7 +386,10 @@ namespace CheckersWithBot.UserModels
 
             return Comparing(toProtectChecker, allPossibleRoutes, botRoutes, game, pointsUnderAttack);
         }
-        private PointsOfChecker Comparing(List<List<PointsOfChecker>> toProtectChecker, List<List<List<Route>>> allPossibleRoutes, List<List<Route>> botRoutes, Game game, List<Point> underAttack)
+
+        private PointsOfChecker Comparing(List<List<PointsOfChecker>> toProtectChecker,
+            List<List<List<Route>>> allPossibleRoutes,
+            List<List<Route>> botRoutes, Game game, List<Point> underAttack)
         {
             PointsOfChecker bestChecker = null;
             PointsOfChecker bestOfTheWorst = null;
@@ -400,6 +418,7 @@ namespace CheckersWithBot.UserModels
                                                          FindMaxValueInRoutesList(
                                                              botRoutes[firstIndex + secondIndex + k]);
                                 }
+
                                 willBotLoseMoreCheckers = true;
                                 break;
                             }
@@ -426,9 +445,12 @@ namespace CheckersWithBot.UserModels
                     }
                 }
             }
-            if(bestChecker == null && bestOfTheWorst != null && DoesBotNeedToProtectChecker(underAttack, game)) bestChecker = bestOfTheWorst;
+
+            if (bestChecker == null && bestOfTheWorst != null && DoesBotNeedToProtectChecker(underAttack, game))
+                bestChecker = bestOfTheWorst;
             return bestChecker;
         }
+
         public bool DoesBotNeedToProtectChecker(List<Point> underAtack, Game game)
         {
             List<(Point, Point)> carefulStep = CarefulStep(game, underAtack);
@@ -438,15 +460,16 @@ namespace CheckersWithBot.UserModels
 
         private int FindMaxValueInRoutesList(List<Route> list)
         {
-            int maxValue = Int32.MinValue;
+            int maxValue = 0;
             for (int i = 0; i < list.Count; i++)
             {
-                if(maxValue < list[i].Value) 
+                if (maxValue < list[i].Value)
                     maxValue = list[i].Value;
             }
 
             return maxValue;
         }
+
         private bool CanEnemy(Game game, Point currentPoint, User enemy)
         {
             for (int i = 0; i < game.Field.Map.GetLength(0); i++)
@@ -461,8 +484,10 @@ namespace CheckersWithBot.UserModels
                     }
                 }
             }
+
             return false;
         }
+
         private bool DoesEnemyCanBitCurrentBotChecker(Game game, Cell cell, Point currentPoint)
         {
             CellType enemyChecker;
@@ -621,7 +646,6 @@ namespace CheckersWithBot.UserModels
         }
         // is bots' checker under danger
 
-
         // beating "DONE"
         private void MoveAllCheckerToCheckCorrectField(Route route, Field field)
         {
@@ -631,6 +655,7 @@ namespace CheckersWithBot.UserModels
                     Moving(route.Path[i], route.Path[i + 1], field);
             }
         }
+
         private (Point, Point) CheckEveryPossibleStepToBeat(Game game, int botIndex) // find best move
         {
             int enemyIndex = GetEnemyIndex(botIndex);
@@ -665,19 +690,28 @@ namespace CheckersWithBot.UserModels
             CalculateValuesOfRoutes(routes, game.Field, copyField,
                 botIndex, game.Users); // for bot // maybe add checking if bot won if yes step all and return Point to get final step
             game.Field = new Field(copyField);
-            Dictionary<Point, List<Route>>
-                consequences = CollectDictionaryOfRoutes(routes, game, copyField, enemyIndex);
+
+            List<Consequences> consequences = CollectDictionaryOfRoutesTest(routes, game, copyField, enemyIndex);
 
             (Point, Point) bestPoints =
-                CompareAndFindBestPoints(routes, consequences, countOfBotCheckers, countOfEnemyCheckers);
+                CompareAndFindBestPointsTest(routes, consequences, countOfBotCheckers, countOfEnemyCheckers);
+
+
+            //Dictionary<Point, List<Route>>
+            //    consequences = CollectDictionaryOfRoutes(routes, game, copyField, enemyIndex);
+
+            //(Point, Point) bestPoints =
+            //    CompareAndFindBestPoints(routes, consequences, countOfBotCheckers, countOfEnemyCheckers);
             return (bestPoints.Item1, bestPoints.Item2);
         }
-        private Dictionary<Point, List<Route>> CollectDictionaryOfRoutes(List<Route> botRoutes, Game game, Field copy,
+
+        private List<Consequences> CollectDictionaryOfRoutesTest(List<Route> botRoutes, Game game, Field copy,
             int enemyIndex)
         {
-            Dictionary<Point, List<Route>> consequences = new Dictionary<Point, List<Route>>();
+            List<Consequences> consequencesTest = new List<Consequences>();
+
             User enemy = GetEnemy(game.Users);
-            
+
             for (int i = 0; i < botRoutes.Count; i++)
             {
                 List<Route> enemyRoutes = new List<Route>();
@@ -696,23 +730,42 @@ namespace CheckersWithBot.UserModels
                 {
                     enemyRoutes = CollectRoutesForEnemy(enemy, game, secondCopy);
                     CalculateValuesOfRoutes(enemyRoutes, game.Field, secondCopy, enemyIndex, game.Users);
-                    if (consequences.ContainsKey(botRoutes[i].Path[botRoutes[i].Path.Count - 1]))
-                    {
-                        List<Route> routes = new List<Route>();
-                        consequences.TryGetValue(botRoutes[i].Path[botRoutes[i].Path.Count - 1], out routes);
-                        routes = AddToListsOfRoutes(routes, enemyRoutes);
-                        consequences.Remove(botRoutes[i].Path[botRoutes[i].Path.Count - 1]);
-
-                        consequences.Add(botRoutes[i].Path[botRoutes[i].Path.Count - 1], routes);
-                    }
-                    else consequences.Add(botRoutes[i].Path[botRoutes[i].Path.Count - 1], enemyRoutes);
-                    //game.Field = new Field(copy);
+                    consequencesTest.Add(new Consequences(botRoutes[i].Path[botRoutes[i].Path.Count - 1], enemyRoutes));
                 }
+                else
+                    consequencesTest.Add(new Consequences(botRoutes[i].Path[botRoutes[i].Path.Count - 1],
+                        new List<Route>()));
+
                 game.Field = new Field(copy);
             }
 
-            return consequences;
+            return consequencesTest;
         }
+
+        private (Point, Point) CompareAndFindBestPointsTest(List<Route> botRoutes,
+            List<Consequences> enemyRoutes, int countOfBotCheckers, int countOfEnemyCheckers)
+        {
+            List<Route> tempList = new List<Route>();
+            Point bestStartPoint = new Point(-1, -1);
+            Point bestEndPoint = new Point(-1, -1);
+            int bestDifference = int.MinValue;
+
+            for (int i = 0; i < botRoutes.Count; i++)
+            {
+                int valueOfBotRoute = botRoutes[i].Value;
+                int enemyRoutesValue = FindMaxValueInRoutesList(enemyRoutes[i].Routes);
+
+                if (bestDifference < valueOfBotRoute - enemyRoutesValue)
+                {
+                    bestStartPoint = botRoutes[i].Path[0];
+                    bestEndPoint = botRoutes[i].Path[1];
+                    bestDifference = valueOfBotRoute - enemyRoutesValue;
+                }
+            }
+
+            return (bestStartPoint, bestEndPoint);
+        }
+
         private void CollectAllPossibleMoves(List<Route> routes, Point startPoint, Game game, Field copyField,
             ref int whereStopped, bool needICorrectFormField = false)
         {
@@ -761,11 +814,14 @@ namespace CheckersWithBot.UserModels
 
             whereStopped = routes.Count;
         }
-        private void CalculateValuesOfRoutes(List<Route> routes, Field field, Field copy, int indexOfPlayer, List<User> users)
+
+        private void CalculateValuesOfRoutes(List<Route> routes, Field field, Field copy, int indexOfPlayer,
+            List<User> users)
         {
             Point startPoint = new Point(-1, -1);
             Point endPoint = new Point(-1, -1);
             User user = users[indexOfPlayer];
+            User enemy = GetEnemy(users);
             for (int i = 0; i < routes.Count; i++)
             {
                 for (int j = 0; j < routes[i].Path.Count; j++)
@@ -792,14 +848,19 @@ namespace CheckersWithBot.UserModels
                     if (field.Map[endPoint.CordX, endPoint.CordY].Type != CellType.QueenF &&
                         field.Map[endPoint.CordX, endPoint.CordY].Type != CellType.QueenS)
                     {
-                        if (DoesBotGotAlmostQueen(indexOfPlayer, field, endPoint) && field.DoesEnemyCanBeatCurrentChecker(endPoint, user)) routes[i].Value++;
+                        if (DoesBotGotAlmostQueen(indexOfPlayer, field, endPoint))
+                            routes[i].Value++; // && !field.DoesEnemyCanBeatCurrentChecker(endPoint, user)
                         else if (DoesBotGotQueen(indexOfPlayer, field, endPoint)) routes[i].Value += 3;
                     }
+
+                    if (!field.DoesEnemyCanBeatCurrentChecker(endPoint, enemy))
+                        routes[i].Value++; // bug maybe remove this line
                 }
 
                 field = new Field(copy);
             }
         }
+
         private List<Route> CollectRoutesForEnemy(User enemy, Game game, Field copyField)
         {
             List<Route> enemyRoutes = new List<Route>();
@@ -828,56 +889,7 @@ namespace CheckersWithBot.UserModels
 
             return enemyRoutes;
         }
-        private (Point, Point) CompareAndFindBestPoints(List<Route> botRoutes,
-            Dictionary<Point, List<Route>> enemyRoutes, int countOfBotCheckers, int countOfEnemyCheckers)
-        {
-            List<Route> tempList = new List<Route>();
-            Point bestStartPoint = botRoutes[0].Path[0];
-            Point bestEndPoint = botRoutes[0].Path[1];
-            int bestvalueOfBotRout = botRoutes[0].Value;
 
-            if (enemyRoutes.TryGetValue(botRoutes[0].Path[botRoutes[0].Path.Count - 1], out tempList) && tempList.Count > 0)
-                bestvalueOfBotRout -= FindMaxValueInRoutesList(tempList);
-            
-            for (int i = 1; i < botRoutes.Count; i++)
-            {
-                int valueOfBotRoute = botRoutes[i].Value;
-                if (enemyRoutes.TryGetValue(botRoutes[i].Path[botRoutes[i].Path.Count - 1], out tempList))
-                {
-                    int maxValue = 0;
-                    if (tempList.Count > 0)
-                    {
-                        maxValue = tempList[0].Value;
-                        for (int j = 1; j < tempList.Count; j++)
-                        {
-                            if (maxValue < tempList[j].Value)
-                                maxValue = tempList[j].Value;
-                        }
-                    }
-                    if (valueOfBotRoute - maxValue > bestvalueOfBotRout)
-                    {
-                        bestvalueOfBotRout = valueOfBotRoute - maxValue;
-                        bestStartPoint = botRoutes[i].Path[0];
-                        bestEndPoint = botRoutes[i].Path[1];
-                    }
-                    else if (valueOfBotRoute - maxValue >= bestvalueOfBotRout &&
-                             countOfBotCheckers >= countOfEnemyCheckers)
-                    {
-                        bestvalueOfBotRout = valueOfBotRoute - maxValue;
-                        bestStartPoint = botRoutes[i].Path[0];
-                        bestEndPoint = botRoutes[i].Path[1];
-                    }
-                }
-                else if (valueOfBotRoute > bestvalueOfBotRout)
-                {
-                    bestvalueOfBotRout = valueOfBotRoute;
-                    bestStartPoint = botRoutes[i].Path[0];
-                    bestEndPoint = botRoutes[i].Path[1];
-                }
-            }
-
-            return (bestStartPoint, bestEndPoint);
-        }
         private (Point, List<Point>) GetFromDictionary(Field field)
         {
             List<Point> points = new List<Point>();
@@ -898,7 +910,7 @@ namespace CheckersWithBot.UserModels
         } // used just for situation when bot have 1 possible attack
         // beating
 
-        
+
         // is it possible to get a queen "DONE"
         private bool IsPossibleToGetQueen(Field field, int indexOfPlayer)
         {
@@ -1007,6 +1019,7 @@ namespace CheckersWithBot.UserModels
             if (!field.DoesCheckerOnFieldCanBeat(enemy) && field.DoesCheckerOnFieldCanBeat(this)) return true;
             return false;
         }
+
         private bool IsPossibleToCreateDanger(Game game)
         {
             User enemy = GetEnemy(game.Users);
@@ -1038,6 +1051,7 @@ namespace CheckersWithBot.UserModels
 
             return false;
         }
+
         private (Point, Point) GetPointForDanger(Game game)
         {
             User enemy = GetEnemy(game.Users);
@@ -1110,11 +1124,12 @@ namespace CheckersWithBot.UserModels
                                     if (tempList.Count > 0)
                                     {
                                         tempEndPoints.Add(endPoint);
-                                        CalculateValuesOfRoutes(tempList, game.Field, secondCopy, enemyIndex, game.Users);
+                                        CalculateValuesOfRoutes(tempList, game.Field, secondCopy, enemyIndex,
+                                            game.Users);
                                         routesOfEnemy.Add(tempList);
                                     }
                                 }
-                                
+
                                 game.Field = new Field(copy);
                             }
 
@@ -1129,7 +1144,8 @@ namespace CheckersWithBot.UserModels
             if (routesOfEnemy.Count > 0)
             {
                 botRoutes = GetAllPossibleVariationsOfRoutesForBot(enemy, game, copy, routesOfEnemy, points, botIndex);
-                (Point, Point) fromComparing = Compare(points, routesOfEnemy, botRoutes, game, countOfBotCheckers, countOfEnemyCheckers);
+                (Point, Point) fromComparing = Compare(points, routesOfEnemy, botRoutes, game, countOfBotCheckers,
+                    countOfEnemyCheckers);
                 if (fromComparing.Item1.CordX != -1 && fromComparing.Item2.CordX != -1)
                     return fromComparing;
 
@@ -1221,7 +1237,6 @@ namespace CheckersWithBot.UserModels
             Point tempEndPoint = new Point(-1, -1);
             int tempDifference = Int32.MinValue;
 
-
             for (int i = 0; i < game.Field.Map.GetLength(0); i++)
             {
                 for (int j = 0; j < game.Field.Map.GetLength(1); j++)
@@ -1262,17 +1277,8 @@ namespace CheckersWithBot.UserModels
                                             tempDifference = GetMinValueFromListOfRoutes(tempBotRoutes) -
                                                              routesOfEnemy[index][k].Value;
                                         }
-                                        //else if (tempDifference < GetMinValueFromListOfRoutes(tempBotRoutes) -
-                                        //         routesOfEnemy[index][k].Value || (tempDifference <= GetMinValueFromListOfRoutes(tempBotRoutes) -
-                                        //                                           routesOfEnemy[index][k].Value &&
-                                        //                                           countOfBotCheckers >= countOfEnemyCheckers))
-                                        //{
-                                        //    tempStartPoint = new Point(i, j);
-                                        //    tempEndPoint = endPoint;
-                                        //    tempDifference = GetMinValueFromListOfRoutes(tempBotRoutes) -
-                                        //                     routesOfEnemy[index][k].Value;
-                                        //}
                                     }
+
                                     else if (tempBotRoutes.Count == 0 && routesOfEnemy[index][k].Value > 0)
                                     {
                                         tempStartPoint = new Point(-1, -1);
@@ -1282,6 +1288,7 @@ namespace CheckersWithBot.UserModels
                                     }
                                 }
                             }
+
                             index++;
                         }
                     }
@@ -1290,6 +1297,7 @@ namespace CheckersWithBot.UserModels
                     {
                         bestStartPoint = tempStartPoint;
                         bestEndPoint = tempEndPoint;
+                        bestDifference = tempDifference;
                     }
                 }
             }
@@ -1385,13 +1393,14 @@ namespace CheckersWithBot.UserModels
                     {
                         Point checker = field.GetEnemyPoint(routes[i].Path[j], routes[i].Path[j + 1]);
                         if (checker.CordX == toFind.CordX && checker.CordY == toFind.CordY) return true;
-                        Moving(new Point(routes[i].Path[j].CordX, routes[i].Path[j].CordY), new Point(routes[i].Path[j + 1].CordX, routes[i].Path[j + 1].CordY), field);
+                        Moving(new Point(routes[i].Path[j].CordX, routes[i].Path[j].CordY),
+                            new Point(routes[i].Path[j + 1].CordX, routes[i].Path[j + 1].CordY), field);
                     }
                 }
 
                 field = new Field(copy);
             }
-            
+
             return false;
         }
     }

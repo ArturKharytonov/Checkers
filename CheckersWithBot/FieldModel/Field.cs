@@ -10,6 +10,7 @@ namespace CheckersWithBot.FieldModel
     public class Field
     {
         public Cell[,] Map { get; set; }
+
         public Field()
         {
             Map = new Cell[8, 8];
@@ -42,27 +43,6 @@ namespace CheckersWithBot.FieldModel
                 }
             }
         }
-
-        //public Field()
-        //{
-        //    Map = new Cell[8, 8];
-        //    for (int i = 0; i < Map.GetLength(0); i++)
-        //    {
-        //        for (int j = 0; j < Map.GetLength(1); j++)
-        //        {
-        //            Map[i, j] = new Cell(new Point(i, j));
-        //        }
-        //    }
-
-        //    Map[0, 6] = new Cell(CellType.QueenF, new Point(6, 0));
-        //    Map[7, 1] = new Cell(CellType.QueenF, new Point(7, 1));
-
-
-        //    Map[1, 7] = new Cell(CellType.CheckerS, new Point(1, 7));
-        //    Map[2, 6] = new Cell(CellType.CheckerS, new Point(2, 6));
-
-        //}
-
         public Field(Field field)
         {
             Map = new Cell[8, 8];
