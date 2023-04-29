@@ -15,6 +15,10 @@ namespace CheckersWithBot
         public List<User> Users { get; set; }
         private const int _toGetNumber = 65;
         private const int _maxCountStepsWithoutBeating = 15;
+        private const int _firstIndex = 0;
+        private const int _secondIndex = 1;
+        private const int _maxCountOfPlayers = 2;
+        private const int _nought = 0;
         public Game(Field field, List<User> users)
         {
             Field = field;
@@ -40,6 +44,9 @@ namespace CheckersWithBot
             Users[1].Color = ConsoleColor.Black;
             Users[1].TypeDef = CellType.CheckerS;
             Users[1].TypeQ = CellType.QueenS;
+
+            Users[0].IndexOfPlayer = 0;
+            Users[1].IndexOfPlayer = 1;
         }
         private void InputOfCords(out int cordX, out int cordY)
         {
@@ -54,7 +61,6 @@ namespace CheckersWithBot
             } while (cordX < 0 || cordX >= Field.Map.GetLength(0) ||
                      cordY < 0 || cordY >= Field.Map.GetLength(1));
         }
-
         public void Start()
         {
             Console.Clear();
@@ -68,7 +74,7 @@ namespace CheckersWithBot
             int countOfStepsWithoutBeating = 0;
             FillDataForPlayers();
 
-            Field.PrintField(Users[0], false, false);
+            Field.PrintField(Users[_firstIndex], false, false);
             do
             {
                 for (int i = 0; i < Users.Count; i++)
@@ -171,6 +177,7 @@ namespace CheckersWithBot
                                                             {
                                                                 Users[i].CordsOfEmptyCells.Clear();
                                                                 step = false;
+                                                                Users[i].DoesBeatSmbBefore = false;
                                                             }
                                                             break;
                                                         default:
@@ -256,6 +263,7 @@ namespace CheckersWithBot
                                                         {
                                                             Users[i].CordsOfEmptyCells.Clear();
                                                             step = false;
+                                                            
                                                         }
                                                         break;
                                                     default:
@@ -297,34 +305,35 @@ namespace CheckersWithBot
                     else
                     {
                         checkerWhichPlayerUsed = ((Bot)Users[i]).BotStep(this, i, checkerWhichPlayerUsed);
-                        if (checkerWhichPlayerUsed.CordX >= 0) countOfStepsWithoutBeating = 0;
+                        if (checkerWhichPlayerUsed.CordX >= _nought) countOfStepsWithoutBeating = 0;
                     } //BOT LOGIC
 
                     
                     Console.ReadLine();
-                    Console.Clear();
+                    //Console.Clear();
 
-                    if (Users.Count == 2)
+                    if (Users.Count == _maxCountOfPlayers)
                     {
                         Field.PrintField(Users[i], true, Users[i].DoesBeatSmbBefore);
                         Users[i].CordsOfEmptyCells = new List<Point>();
 
-                        IfGotQueen(i); // does player got queen
-                        if (Field.CountOfCheckersOnBoard(Users[0]) == 0 && Users.Count == 2)
+                        SwapCheckersOnQueens(i); // does player got queen
+
+                        if (Field.CountOfCheckersOnBoard(Users[_firstIndex]) == _nought && Users.Count == _maxCountOfPlayers)
                         {
-                            Users.RemoveAt(0);
+                            Users.RemoveAt(_firstIndex);
                             isEnd = true;
                             break;
                         } // if lost first Player
-                        if (Field.CountOfCheckersOnBoard(Users[1]) == 0 && Users.Count == 2)
+                        if (Field.CountOfCheckersOnBoard(Users[_secondIndex]) == _nought && Users.Count == _maxCountOfPlayers)
                         {
-                            Users.RemoveAt(1);
+                            Users.RemoveAt(_secondIndex);
                             isEnd = true;
                             break;
                         } // if lost second Player
 
                         
-                        if (checkerWhichPlayerUsed.CordX >= 0 && checkerWhichPlayerUsed.CordY >= 0 &&
+                        if (checkerWhichPlayerUsed.CordX >= _nought && checkerWhichPlayerUsed.CordY >= _nought &&
                             Field.DoesCurrentCheckerCanBitAnyCheck(Field.Map[checkerWhichPlayerUsed.CordX, checkerWhichPlayerUsed.CordY]) &&
                             Users[i].DoesBeatSmbBefore) i--;
                         else Users[i].DoesBeatSmbBefore = false;
@@ -336,21 +345,19 @@ namespace CheckersWithBot
                 if (countOfStepsWithoutBeating == _maxCountStepsWithoutBeating) isEnd = true;
             } while (!isEnd);
 
-            Field.PrintField(Users[0], false, false);
+            Field.PrintField(Users[_firstIndex], false, false);
             Console.ReadLine();
 
-            if (Users.Count == 2)
+            if (Users.Count == _maxCountOfPlayers)
                 Console.WriteLine($"DRAW!");
             else 
-                Console.WriteLine($"{Users[0].Name} - WON! HIS COLOR WAS - {Users[0].Color}.");
+                Console.WriteLine($"{Users[_firstIndex].Name} - WON! HIS COLOR WAS - {Users[_firstIndex].Color}.");
         }
-
         public bool OfferDraw(int index)
         {
             int tempIndex = 0;
 
             if (index == 0) tempIndex = 1;
-            else tempIndex = 0;
 
             Console.WriteLine($"{Users[index].Name} offers draw: ");
             if (Users[tempIndex].GetType() == typeof(Player))
@@ -365,17 +372,12 @@ namespace CheckersWithBot
 
                 return choice == 'y';
             }
-            else // write logic when bot need to accept draw
-            {
-                (int, int) values = GetValueOfCheckers();
-                if (tempIndex == 0 && values.Item1 <= values.Item2 && CountOfCheckers() <= 4)
-                    return true;
-                if (tempIndex == 1 && values.Item1 >= values.Item2 && CountOfCheckers() <= 4)
-                    return true;
-            }
-            return false;
-        }
 
+            (int, int) values = GetValueOfCheckers();
+
+            return (tempIndex == 0 && values.Item1 <= values.Item2 && CountOfCheckers() <= 4) ||
+                   (tempIndex == 1 && values.Item1 >= values.Item2 && CountOfCheckers() <= 4);
+        }
         public (int, int) GetValueOfCheckers()
         {
             int valueOfWhiteCheckers = 0;
@@ -406,7 +408,7 @@ namespace CheckersWithBot
 
             return count;
         }
-        public void IfGotQueen(int indexOfPlayer)
+        public void SwapCheckersOnQueens(int indexOfPlayer)
         {
             if (indexOfPlayer == 0)
             {
@@ -415,14 +417,13 @@ namespace CheckersWithBot
                     if (Field.Map[Field.Map.GetLength(0) - 1, i].Type == CellType.CheckerF)
                         Field.Map[Field.Map.GetLength(0) - 1, i].Type = CellType.QueenF;
                 }
+                return;
             }
-            else
+
+            for (int i = 0; i < Field.Map.GetLength(1); i++)
             {
-                for (int i = 0; i < Field.Map.GetLength(1); i++)
-                {
-                    if (Field.Map[0, i].Type == CellType.CheckerS)
-                        Field.Map[0, i].Type = CellType.QueenS;
-                }
+                if (Field.Map[0, i].Type == CellType.CheckerS)
+                    Field.Map[0, i].Type = CellType.QueenS;
             }
         }
     }

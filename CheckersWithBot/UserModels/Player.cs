@@ -10,13 +10,6 @@ namespace CheckersWithBot.UserModels
     {
         public Player(string name) : base(name)
         {
-            Name = name;
-            CordsOfEmptyCells = new List<Point>();
-            //CordsOfCheckersThatCanBit = new List<Point>();
-            //HisChecksThatAbleToBit = new List<Point>();
-            UserAbleToBit = new Dictionary<Point, List<Point>>();
-            DoesBeatSmbBefore = false;
-            
         }
     }
 }
